@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Biker Garage - Management System',
+  title: 'Chakra - Management System',
   description: 'Professional bike service management system',
 };
 

@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { Bike, Bill } from '@/lib/types';
+import Navigation from '@/components/Navigation';
 
 export default function DashboardPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
@@ -26,6 +27,11 @@ export default function DashboardPage() {
     }
     fetchData();
   }, [router]);
+
+  const handleLogout = () => {
+    clearAuthToken();
+    router.push('/login');
+  };
 
   const fetchData = async () => {
     try {
@@ -78,7 +84,8 @@ export default function DashboardPage() {
   if (error) {
     return (
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        <Navigation onLogout={handleLogout} />
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 mt-6">
           {error}
           <button onClick={fetchData} className="ml-4 underline hover:no-underline">
             Retry
@@ -89,170 +96,173 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-mono font-bold text-primary">Dashboard</h1>
-        <p className="text-slate-500 mt-1">Welcome to Biker Garage Management System</p>
-      </div>
+    <>
+      <Navigation onLogout={handleLogout} />
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-mono font-bold text-primary">Dashboard</h1>
+          <p className="text-slate-500 mt-1">Welcome to Chakra Management System</p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-500 text-sm">Total Bikes</p>
-              <p className="text-3xl font-mono font-bold text-primary mt-1">{stats.totalBikes}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm">Total Bikes</p>
+                <p className="text-3xl font-mono font-bold text-primary mt-1">{stats.totalBikes}</p>
+              </div>
+              <div className="bg-cta/10 p-3 rounded-lg">
+                <svg className="w-6 h-6 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                </svg>
+              </div>
             </div>
-            <div className="bg-cta/10 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-              </svg>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm">Bills (7 Days)</p>
+                <p className="text-3xl font-mono font-bold text-primary mt-1">{stats.totalBills}</p>
+              </div>
+              <div className="bg-green-500/10 p-3 rounded-lg">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm">Revenue (7 Days)</p>
+                <p className="text-3xl font-mono font-bold text-green-600 mt-1">
+                  ₹{stats.totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
+                </p>
+              </div>
+              <div className="bg-accent/10 p-3 rounded-lg">
+                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-500 text-sm">Avg. Bill Value</p>
+                <p className="text-3xl font-mono font-bold text-cta mt-1">
+                  ₹{stats.avgBill.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
+                </p>
+              </div>
+              <div className="bg-purple-500/10 p-3 rounded-lg">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-slate-500 text-sm">Bills (7 Days)</p>
-              <p className="text-3xl font-mono font-bold text-primary mt-1">{stats.totalBills}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-primary">Recent Bikes</h2>
+              <Link href="/bikes" className="text-cta hover:text-red-700 text-sm font-medium cursor-pointer">
+                View All →
+              </Link>
             </div>
-            <div className="bg-green-500/10 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {bikes.length === 0 ? (
+              <p className="text-slate-500 text-center py-8">No bikes registered yet</p>
+            ) : (
+              <div className="space-y-3">
+                {bikes.slice(0, 5).map((bike) => (
+                  <div key={bike.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="font-mono font-semibold text-primary">{bike.bike_number}</p>
+                      <p className="text-sm text-slate-500">{bike.bike_name}</p>
+                    </div>
+                    <p className="text-sm text-slate-600">{bike.customer_name}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-primary">Recent Bills</h2>
+              <Link href="/history" className="text-cta hover:text-red-700 text-sm font-medium cursor-pointer">
+                View All →
+              </Link>
+            </div>
+            {recentBills.length === 0 ? (
+              <p className="text-slate-500 text-center py-8">No bills generated yet</p>
+            ) : (
+              <div className="space-y-3">
+                {recentBills.map((bill) => (
+                  <div key={bill.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                    <div>
+                      <p className="font-mono font-semibold text-cta">{bill.bill_number}</p>
+                      <p className="text-sm text-slate-500">{bill.bike_number} - {bill.customer_name}</p>
+                    </div>
+                    <p className="font-mono font-semibold text-green-600">₹{bill.total.toLocaleString('en-IN')}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link
+            href="/bikes"
+            className="card-hover bg-white rounded-xl shadow-md p-6 flex items-center gap-4 cursor-pointer"
+          >
+            <div className="bg-cta/10 p-4 rounded-xl">
+              <svg className="w-8 h-8 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-primary text-lg">Register Bike</h3>
+              <p className="text-slate-500 text-sm">Add new customer bike</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/billing"
+            className="card-hover bg-white rounded-xl shadow-md p-6 flex items-center gap-4 cursor-pointer"
+          >
+            <div className="bg-green-500/10 p-4 rounded-xl">
+              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
               </svg>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-500 text-sm">Revenue (7 Days)</p>
-              <p className="text-3xl font-mono font-bold text-green-600 mt-1">
-                ₹{stats.totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
-              </p>
+              <h3 className="font-semibold text-primary text-lg">Create Bill</h3>
+              <p className="text-slate-500 text-sm">Generate new invoice</p>
             </div>
-            <div className="bg-accent/10 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </Link>
+
+          <Link
+            href="/history"
+            className="card-hover bg-white rounded-xl shadow-md p-6 flex items-center gap-4 cursor-pointer"
+          >
+            <div className="bg-accent/10 p-4 rounded-xl">
+              <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between">
             <div>
-              <p className="text-slate-500 text-sm">Avg. Bill Value</p>
-              <p className="text-3xl font-mono font-bold text-cta mt-1">
-                ₹{stats.avgBill.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
-              </p>
+              <h3 className="font-semibold text-primary text-lg">View History</h3>
+              <p className="text-slate-500 text-sm">Last 7 days bills</p>
             </div>
-            <div className="bg-purple-500/10 p-3 rounded-lg">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-          </div>
+          </Link>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-primary">Recent Bikes</h2>
-            <Link href="/bikes" className="text-cta hover:text-red-700 text-sm font-medium cursor-pointer">
-              View All →
-            </Link>
-          </div>
-          {bikes.length === 0 ? (
-            <p className="text-slate-500 text-center py-8">No bikes registered yet</p>
-          ) : (
-            <div className="space-y-3">
-              {bikes.slice(0, 5).map((bike) => (
-                <div key={bike.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <p className="font-mono font-semibold text-primary">{bike.bike_number}</p>
-                    <p className="text-sm text-slate-500">{bike.bike_name}</p>
-                  </div>
-                  <p className="text-sm text-slate-600">{bike.customer_name}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-primary">Recent Bills</h2>
-            <Link href="/history" className="text-cta hover:text-red-700 text-sm font-medium cursor-pointer">
-              View All →
-            </Link>
-          </div>
-          {recentBills.length === 0 ? (
-            <p className="text-slate-500 text-center py-8">No bills generated yet</p>
-          ) : (
-            <div className="space-y-3">
-              {recentBills.map((bill) => (
-                <div key={bill.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <p className="font-mono font-semibold text-cta">{bill.bill_number}</p>
-                    <p className="text-sm text-slate-500">{bill.bike_number} - {bill.customer_name}</p>
-                  </div>
-                  <p className="font-mono font-semibold text-green-600">₹{bill.total.toLocaleString('en-IN')}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Link
-          href="/bikes"
-          className="card-hover bg-white rounded-xl shadow-md p-6 flex items-center gap-4 cursor-pointer"
-        >
-          <div className="bg-cta/10 p-4 rounded-xl">
-            <svg className="w-8 h-8 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-semibold text-primary text-lg">Register Bike</h3>
-            <p className="text-slate-500 text-sm">Add new customer bike</p>
-          </div>
-        </Link>
-
-        <Link
-          href="/billing"
-          className="card-hover bg-white rounded-xl shadow-md p-6 flex items-center gap-4 cursor-pointer"
-        >
-          <div className="bg-green-500/10 p-4 rounded-xl">
-            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-semibold text-primary text-lg">Create Bill</h3>
-            <p className="text-slate-500 text-sm">Generate new invoice</p>
-          </div>
-        </Link>
-
-        <Link
-          href="/history"
-          className="card-hover bg-white rounded-xl shadow-md p-6 flex items-center gap-4 cursor-pointer"
-        >
-          <div className="bg-accent/10 p-4 rounded-xl">
-            <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div>
-            <h3 className="font-semibold text-primary text-lg">View History</h3>
-            <p className="text-slate-500 text-sm">Last 7 days bills</p>
-          </div>
-        </Link>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }

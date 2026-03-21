@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { Bike, Bill } from '@/lib/types';
+import Navigation from '@/components/Navigation';
 import Modal from '@/components/Modal';
 import Toast from '@/components/Toast';
 import { generatePDF } from '@/lib/pdf';
@@ -45,6 +46,11 @@ export default function BillingPage() {
     fetchBikes();
   }, [router]);
 
+  const handleLogout = () => {
+    clearAuthToken();
+    router.push('/login');
+  };
+
   useEffect(() => {
     const service = Math.max(0, parseFloat(formData.service_amount) || 0);
     const parts = Math.max(0, parseFloat(formData.parts_amount) || 0);
@@ -64,8 +70,6 @@ export default function BillingPage() {
       const data = await res.json();
       if (Array.isArray(data)) {
         setBikes(data);
-      } else {
-        setBikes([]);
       }
     } catch (error) {
       console.error('Error fetching bikes:', error);
@@ -197,287 +201,290 @@ export default function BillingPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-mono font-bold text-primary">Create Bill</h1>
-        <p className="text-slate-500 mt-1">Generate new invoice for bike service</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-            Select Bike
-          </h3>
-
-          <select
-            name="bike_id"
-            value={formData.bike_id}
-            onChange={handleBikeSelect}
-            className={`w-full p-3 border rounded-lg mb-4 cursor-pointer ${
-              errors.bike_id ? 'border-red-500' : 'border-slate-200'
-            }`}
-          >
-            <option value="">-- Select a Bike --</option>
-            {bikes.map((bike) => (
-              <option key={bike.id} value={bike.id}>
-                {bike.bike_number} - {bike.bike_name} ({bike.customer_name})
-              </option>
-            ))}
-          </select>
-          {errors.bike_id && <p className="text-red-500 text-sm mb-4">{errors.bike_id}</p>}
-
-          {selectedBike && (
-            <div className="bg-slate-50 rounded-lg p-4">
-              <h4 className="font-semibold text-primary mb-2">Selected Bike Details</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-slate-500">Bike Number</span>
-                  <p className="font-semibold text-primary font-mono">{selectedBike.bike_number}</p>
-                </div>
-                <div>
-                  <span className="text-slate-500">Bike Name</span>
-                  <p className="font-semibold text-primary">{selectedBike.bike_name}</p>
-                </div>
-                <div>
-                  <span className="text-slate-500">Customer</span>
-                  <p className="font-semibold text-primary">{selectedBike.customer_name}</p>
-                </div>
-                <div>
-                  <span className="text-slate-500">Mobile</span>
-                  <p className="font-semibold text-primary">{selectedBike.mobile}</p>
-                </div>
-              </div>
-            </div>
-          )}
+    <>
+      <Navigation onLogout={handleLogout} />
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-mono font-bold text-primary">Create Bill</h1>
+          <p className="text-slate-500 mt-1">Generate new invoice for bike service</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-6">
-          <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
-            <svg className="w-5 h-5 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-            </svg>
-            Bill Details
-          </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              Select Bike
+            </h3>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Service Description *
-              </label>
-              <textarea
-                name="service_desc"
-                value={formData.service_desc}
-                onChange={handleChange}
-                rows={3}
-                placeholder="Oil change, brake repair, general service, etc."
-                className={`w-full p-3 border rounded-lg resize-none ${
-                  errors.service_desc ? 'border-red-500' : 'border-slate-200'
-                }`}
-              />
-              {errors.service_desc && <p className="text-red-500 text-sm mt-1">{errors.service_desc}</p>}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Service Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  name="service_amount"
-                  value={formData.service_amount}
-                  onChange={handleChange}
-                  placeholder="0"
-                  min="0"
-                  step="0.01"
-                  className="w-full p-3 border border-slate-200 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Parts Amount (₹)
-                </label>
-                <input
-                  type="number"
-                  name="parts_amount"
-                  value={formData.parts_amount}
-                  onChange={handleChange}
-                  placeholder="0"
-                  min="0"
-                  step="0.01"
-                  className="w-full p-3 border border-slate-200 rounded-lg"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  GST (%)
-                </label>
-                <select
-                  name="gst_percent"
-                  value={formData.gst_percent}
-                  onChange={handleChange}
-                  className="w-full p-3 border border-slate-200 rounded-lg cursor-pointer"
-                >
-                  <option value="0">No GST</option>
-                  <option value="5">5% GST</option>
-                  <option value="12">12% GST</option>
-                  <option value="18">18% GST</option>
-                  <option value="28">28% GST</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Discount (₹)
-                </label>
-                <input
-                  type="number"
-                  name="discount"
-                  value={formData.discount}
-                  onChange={handleChange}
-                  placeholder="0"
-                  min="0"
-                  step="0.01"
-                  className="w-full p-3 border border-slate-200 rounded-lg"
-                />
-              </div>
-            </div>
-
-            <div className="bg-primary text-white rounded-lg p-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-slate-300">Subtotal</span>
-                <span className="font-mono">₹{calculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-slate-300">GST ({formData.gst_percent}%)</span>
-                <span className="font-mono">₹{calculations.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-              {parseFloat(formData.discount) > 0 && (
-                <div className="flex justify-between items-center mb-2 text-red-400">
-                  <span>Discount</span>
-                  <span className="font-mono">-₹{parseFloat(formData.discount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                </div>
-              )}
-              <div className="flex justify-between items-center pt-2 border-t border-slate-600">
-                <span className="text-lg">Total Amount</span>
-                <span className="text-3xl font-mono font-bold">₹{calculations.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="btn-hover w-full bg-cta text-white py-3 rounded-lg font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            <select
+              name="bike_id"
+              value={formData.bike_id}
+              onChange={handleBikeSelect}
+              className={`w-full p-3 border rounded-lg mb-4 cursor-pointer ${
+                errors.bike_id ? 'border-red-500' : 'border-slate-200'
+              }`}
             >
-              {isSubmitting ? 'Generating Bill...' : 'Generate Bill'}
-            </button>
-          </form>
-        </div>
-      </div>
+              <option value="">-- Select a Bike --</option>
+              {bikes.map((bike) => (
+                <option key={bike.id} value={bike.id}>
+                  {bike.bike_number} - {bike.bike_name} ({bike.customer_name})
+                </option>
+              ))}
+            </select>
+            {errors.bike_id && <p className="text-red-500 text-sm mb-4">{errors.bike_id}</p>}
 
-      {showBill && currentBill && (
-        <Modal
-          isOpen={showBill}
-          onClose={() => setShowBill(false)}
-          title={`Bill ${currentBill.bill_number}`}
-          size="lg"
-        >
-          <div className="space-y-4">
-            <div className="text-center border-b pb-4">
-              <h2 className="text-xl font-mono font-bold text-primary">BIKER GARAGE</h2>
-              <p className="text-sm text-slate-500">Professional Bike Service Center</p>
-              <p className="text-xs text-slate-400 mt-1">Bill #{currentBill.bill_number}</p>
-              <p className="text-xs text-slate-400">{formatDate(currentBill.created_at)}</p>
-            </div>
-
-            <div className="bg-slate-50 rounded-lg p-4">
-              <h4 className="font-semibold text-primary mb-2">Customer Details</h4>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-slate-500">Bike:</span> <span className="font-mono">{currentBill.bike_number}</span>
-                </div>
-                <div>
-                  <span className="text-slate-500">Model:</span> {currentBill.bike_name}
-                </div>
-                <div>
-                  <span className="text-slate-500">Name:</span> {currentBill.customer_name}
-                </div>
-                <div>
-                  <span className="text-slate-500">Mobile:</span> {currentBill.mobile}
+            {selectedBike && (
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h4 className="font-semibold text-primary mb-2">Selected Bike Details</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-slate-500">Bike Number</span>
+                    <p className="font-semibold text-primary font-mono">{selectedBike.bike_number}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Bike Name</span>
+                    <p className="font-semibold text-primary">{selectedBike.bike_name}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Customer</span>
+                    <p className="font-semibold text-primary">{selectedBike.customer_name}</p>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Mobile</span>
+                    <p className="font-semibold text-primary">{selectedBike.mobile}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div className="border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-100">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-slate-600">Description</th>
-                    <th className="px-3 py-2 text-right text-slate-600">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b">
-                    <td className="px-3 py-2">{currentBill.service_desc}</td>
-                    <td className="px-3 py-2 text-right">₹{currentBill.service_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                  </tr>
-                  {currentBill.parts_amount > 0 && (
-                    <tr className="border-b">
-                      <td className="px-3 py-2">Parts</td>
-                      <td className="px-3 py-2 text-right">₹{currentBill.parts_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                  )}
-                  {currentBill.gst_amount > 0 && (
-                    <tr className="border-b">
-                      <td className="px-3 py-2">GST ({currentBill.gst_percent}%)</td>
-                      <td className="px-3 py-2 text-right">₹{currentBill.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                  )}
-                  {currentBill.discount > 0 && (
-                    <tr className="border-b text-red-600">
-                      <td className="px-3 py-2">Discount</td>
-                      <td className="px-3 py-2 text-right">-₹{currentBill.discount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="bg-primary text-white rounded-lg p-4">
-              <div className="flex justify-between items-center">
-                <span className="text-lg">Total Amount</span>
-                <span className="text-2xl font-mono font-bold">₹{currentBill.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handlePrint}
-                className="btn-hover flex-1 bg-primary text-white py-3 rounded-lg font-semibold cursor-pointer flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                Print PDF
-              </button>
-              <ShareButton bill={currentBill} />
-              <button
-                onClick={() => setShowBill(false)}
-                className="flex-1 py-3 border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 cursor-pointer"
-              >
-                Close
-              </button>
-            </div>
+            )}
           </div>
-        </Modal>
-      )}
 
-      {showToast && <Toast message={toastMessage} type={toastType} />}
-    </main>
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h3 className="text-lg font-semibold text-primary mb-4 flex items-center gap-2">
+              <svg className="w-5 h-5 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+              </svg>
+              Bill Details
+            </h3>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Service Description *
+                </label>
+                <textarea
+                  name="service_desc"
+                  value={formData.service_desc}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="Oil change, brake repair, general service, etc."
+                  className={`w-full p-3 border rounded-lg resize-none ${
+                    errors.service_desc ? 'border-red-500' : 'border-slate-200'
+                  }`}
+                />
+                {errors.service_desc && <p className="text-red-500 text-sm mt-1">{errors.service_desc}</p>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Service Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    name="service_amount"
+                    value={formData.service_amount}
+                    onChange={handleChange}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                    className="w-full p-3 border border-slate-200 rounded-lg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Parts Amount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    name="parts_amount"
+                    value={formData.parts_amount}
+                    onChange={handleChange}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                    className="w-full p-3 border border-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    GST (%)
+                  </label>
+                  <select
+                    name="gst_percent"
+                    value={formData.gst_percent}
+                    onChange={handleChange}
+                    className="w-full p-3 border border-slate-200 rounded-lg cursor-pointer"
+                  >
+                    <option value="0">No GST</option>
+                    <option value="5">5% GST</option>
+                    <option value="12">12% GST</option>
+                    <option value="18">18% GST</option>
+                    <option value="28">28% GST</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Discount (₹)
+                  </label>
+                  <input
+                    type="number"
+                    name="discount"
+                    value={formData.discount}
+                    onChange={handleChange}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                    className="w-full p-3 border border-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-primary text-white rounded-lg p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-slate-300">Subtotal</span>
+                  <span className="font-mono">₹{calculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-slate-300">GST ({formData.gst_percent}%)</span>
+                  <span className="font-mono">₹{calculations.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+                {parseFloat(formData.discount) > 0 && (
+                  <div className="flex justify-between items-center mb-2 text-red-400">
+                    <span>Discount</span>
+                    <span className="font-mono">-₹{parseFloat(formData.discount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center pt-2 border-t border-slate-600">
+                  <span className="text-lg">Total Amount</span>
+                  <span className="text-3xl font-mono font-bold">₹{calculations.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="btn-hover w-full bg-cta text-white py-3 rounded-lg font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? 'Generating Bill...' : 'Generate Bill'}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {showBill && currentBill && (
+          <Modal
+            isOpen={showBill}
+            onClose={() => setShowBill(false)}
+            title={`Bill ${currentBill.bill_number}`}
+            size="lg"
+          >
+            <div className="space-y-4">
+              <div className="text-center border-b pb-4">
+                <h2 className="text-xl font-mono font-bold text-primary">CHAKRA</h2>
+                <p className="text-sm text-slate-500">Professional Bike Service Center</p>
+                <p className="text-xs text-slate-400 mt-1">Bill #{currentBill.bill_number}</p>
+                <p className="text-xs text-slate-400">{formatDate(currentBill.created_at)}</p>
+              </div>
+
+              <div className="bg-slate-50 rounded-lg p-4">
+                <h4 className="font-semibold text-primary mb-2">Customer Details</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-slate-500">Bike:</span> <span className="font-mono">{currentBill.bike_number}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Model:</span> {currentBill.bike_name}
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Name:</span> {currentBill.customer_name}
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Mobile:</span> {currentBill.mobile}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-slate-600">Description</th>
+                      <th className="px-3 py-2 text-right text-slate-600">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b">
+                      <td className="px-3 py-2">{currentBill.service_desc}</td>
+                      <td className="px-3 py-2 text-right">₹{currentBill.service_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                    </tr>
+                    {currentBill.parts_amount > 0 && (
+                      <tr className="border-b">
+                        <td className="px-3 py-2">Parts</td>
+                        <td className="px-3 py-2 text-right">₹{currentBill.parts_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    )}
+                    {currentBill.gst_amount > 0 && (
+                      <tr className="border-b">
+                        <td className="px-3 py-2">GST ({currentBill.gst_percent}%)</td>
+                        <td className="px-3 py-2 text-right">₹{currentBill.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    )}
+                    {currentBill.discount > 0 && (
+                      <tr className="border-b text-red-600">
+                        <td className="px-3 py-2">Discount</td>
+                        <td className="px-3 py-2 text-right">-₹{currentBill.discount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="bg-primary text-white rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-lg">Total Amount</span>
+                  <span className="text-2xl font-mono font-bold">₹{currentBill.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePrint}
+                  className="btn-hover flex-1 bg-primary text-white py-3 rounded-lg font-semibold cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  Print PDF
+                </button>
+                <ShareButton bill={currentBill} />
+                <button
+                  onClick={() => setShowBill(false)}
+                  className="flex-1 py-3 border border-slate-300 text-slate-700 rounded-lg font-semibold hover:bg-slate-50 cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
+
+        {showToast && <Toast message={toastMessage} type={toastType} />}
+      </main>
+    </>
   );
 }

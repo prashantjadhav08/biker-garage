@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function migrateAndGetBills() {
+  if (typeof window !== 'undefined') {
+    const oldKey = 'biker_garage_bills';
+    const newKey = 'chakra_bills';
+    const oldData = localStorage.getItem(oldKey);
+    const newData = localStorage.getItem(newKey);
+    if (oldData && !newData) {
+      localStorage.setItem(newKey, oldData);
+      localStorage.removeItem(oldKey);
+      return JSON.parse(oldData);
+    }
+    return newData ? JSON.parse(newData) : [];
+  }
+  return [];
+}
+
 function getBills() {
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('biker_garage_bills');
+    const stored = localStorage.getItem('chakra_bills');
     return stored ? JSON.parse(stored) : [];
   }
   return [];
@@ -10,7 +26,7 @@ function getBills() {
 
 function saveBills(bills: any[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('biker_garage_bills', JSON.stringify(bills));
+    localStorage.setItem('chakra_bills', JSON.stringify(bills));
   }
 }
 
@@ -20,7 +36,7 @@ export async function GET(request: NextRequest) {
     const days = searchParams.get('days') || '7';
     const id = searchParams.get('id');
 
-    const bills = getBills();
+    const bills = migrateAndGetBills();
 
     if (id) {
       const bill = bills.find((b: any) => b.id === id);
@@ -72,7 +88,7 @@ export async function POST(request: NextRequest) {
     const gst_amount = subtotal * (gstPct / 100);
     const total = subtotal + gst_amount - discountAmt;
 
-    const bill_number = `BG${Date.now().toString().slice(-6)}`;
+    const bill_number = `CK${Date.now().toString().slice(-6)}`;
 
     const newBill = {
       id: Date.now().toString(),

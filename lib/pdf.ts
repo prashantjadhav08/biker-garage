@@ -9,7 +9,7 @@ export function generatePDF(bill: Bill) {
   doc.setFontSize(22);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
-  doc.text('BIKER GARAGE', pageWidth / 2, 25, { align: 'center' });
+  doc.text('CHAKRA', pageWidth / 2, 25, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -119,10 +119,10 @@ export function generatePDF(bill: Bill) {
 
   doc.setFontSize(10);
   doc.setTextColor(100, 116, 139);
-  doc.text('Thank you for choosing Biker Garage!', pageWidth / 2, yPos + 30, { align: 'center' });
+  doc.text('Thank you for choosing Chakra!', pageWidth / 2, yPos + 30, { align: 'center' });
   doc.text('Please visit again!', pageWidth / 2, yPos + 36, { align: 'center' });
 
-  doc.save(`Bill_${bill.bill_number}.pdf`);
+  doc.save(`Chakra_Bill_${bill.bill_number}.pdf`);
 }
 
 function numberToWords(num: number): string {
@@ -155,7 +155,7 @@ function numberToWords(num: number): string {
 }
 
 export async function shareToWhatsApp(bill: Bill) {
-  const message = `*BIKER GARAGE*
+  const message = `*CHAKRA*
 
 *Bill #${bill.bill_number}*
 Date: ${new Date(bill.created_at).toLocaleDateString('en-IN')}
@@ -173,12 +173,12 @@ ${bill.parts_amount > 0 ? `Parts: ₹${bill.parts_amount.toLocaleString('en-IN')
 
 *Total: ₹${bill.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}*
 
-Thank you for choosing Biker Garage!`;
+Thank you for choosing Chakra!`;
 
   if (navigator.share) {
     try {
       await navigator.share({
-        title: `Bill #${bill.bill_number} - Biker Garage`,
+        title: `Bill #${bill.bill_number} - Chakra`,
         text: message,
       });
       return true;

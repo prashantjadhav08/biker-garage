@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { Bike } from '@/lib/types';
+import Navigation from '@/components/Navigation';
 import BikeForm from '@/components/BikeForm';
 import BikeCard from '@/components/BikeCard';
 import Toast from '@/components/Toast';
@@ -28,13 +29,18 @@ export default function BikesPage() {
     fetchBikes();
   }, [router]);
 
+  const handleLogout = () => {
+    clearAuthToken();
+    router.push('/login');
+  };
+
   useEffect(() => {
     const filtered = bikes.filter(
       (bike) =>
-        bike.bike_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        bike.bike_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        bike.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        bike.mobile.includes(searchTerm)
+        bike.bike_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        bike.bike_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        bike.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        bike.mobile?.includes(searchTerm)
     );
     setFilteredBikes(filtered);
   }, [searchTerm, bikes]);
@@ -43,8 +49,10 @@ export default function BikesPage() {
     try {
       const res = await fetch('/api/bikes');
       const data = await res.json();
-      setBikes(Array.isArray(data) ? data : []);
-      setFilteredBikes(Array.isArray(data) ? data : []);
+      if (Array.isArray(data)) {
+        setBikes(data);
+        setFilteredBikes(data);
+      }
     } catch (error) {
       console.error('Error fetching bikes:', error);
       showToastMessage('Failed to fetch bikes', 'error');
@@ -117,77 +125,80 @@ export default function BikesPage() {
   }
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-mono font-bold text-primary">Bike Management</h1>
-          <p className="text-slate-500 mt-1">Manage registered bikes</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="btn-hover bg-cta text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 cursor-pointer"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Bike
-        </button>
-      </div>
-
-      <div className="mb-6">
-        <div className="relative">
-          <svg
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+    <>
+      <Navigation onLogout={handleLogout} />
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-mono font-bold text-primary">Bike Management</h1>
+            <p className="text-slate-500 mt-1">Manage registered bikes</p>
+          </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="btn-hover bg-cta text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 cursor-pointer"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by bike number, name, or customer..."
-            className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg"
-          />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Bike
+          </button>
         </div>
-      </div>
 
-      {filteredBikes.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-md">
-          <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          <p className="text-slate-500 text-lg">
-            {searchTerm ? 'No bikes match your search' : 'No bikes registered yet'}
-          </p>
-          {!searchTerm && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="mt-4 text-cta hover:text-red-700 font-medium cursor-pointer"
+        <div className="mb-6">
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              Add your first bike
-            </button>
-          )}
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by bike number, name, or customer..."
+              className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg"
+            />
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredBikes.map((bike) => (
-            <BikeCard key={bike.id} bike={bike} onEdit={handleEdit} onDelete={handleDelete} />
-          ))}
-        </div>
-      )}
 
-      {showForm && (
-        <BikeForm
-          bike={editingBike}
-          onSave={handleSave}
-          onClose={handleCloseForm}
-        />
-      )}
+        {filteredBikes.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-xl shadow-md">
+            <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <p className="text-slate-500 text-lg">
+              {searchTerm ? 'No bikes match your search' : 'No bikes registered yet'}
+            </p>
+            {!searchTerm && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="mt-4 text-cta hover:text-red-700 font-medium cursor-pointer"
+              >
+                Add your first bike
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredBikes.map((bike) => (
+              <BikeCard key={bike.id} bike={bike} onEdit={handleEdit} onDelete={handleDelete} />
+            ))}
+          </div>
+        )}
 
-      {showToast && <Toast message={toastMessage} type={toastType} />}
-    </main>
+        {showForm && (
+          <BikeForm
+            bike={editingBike}
+            onSave={handleSave}
+            onClose={handleCloseForm}
+          />
+        )}
+
+        {showToast && <Toast message={toastMessage} type={toastType} />}
+      </main>
+    </>
   );
 }

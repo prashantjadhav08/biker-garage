@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function migrateAndGetBikes() {
+  if (typeof window !== 'undefined') {
+    const oldKey = 'biker_garage_bikes';
+    const newKey = 'chakra_bikes';
+    const oldData = localStorage.getItem(oldKey);
+    const newData = localStorage.getItem(newKey);
+    if (oldData && !newData) {
+      localStorage.setItem(newKey, oldData);
+      localStorage.removeItem(oldKey);
+      return JSON.parse(oldData);
+    }
+    return newData ? JSON.parse(newData) : [];
+  }
+  return [];
+}
+
 function getBikes() {
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('biker_garage_bikes');
+    const stored = localStorage.getItem('chakra_bikes');
     return stored ? JSON.parse(stored) : [];
   }
   return [];
@@ -10,13 +26,13 @@ function getBikes() {
 
 function saveBikes(bikes: any[]) {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('biker_garage_bikes', JSON.stringify(bikes));
+    localStorage.setItem('chakra_bikes', JSON.stringify(bikes));
   }
 }
 
 export async function GET() {
   try {
-    const bikes = getBikes();
+    const bikes = migrateAndGetBikes();
     return NextResponse.json(bikes);
   } catch (error) {
     console.error('Error fetching bikes:', error);
