@@ -52,6 +52,8 @@ export default function BikesPage() {
       if (Array.isArray(data)) {
         setBikes(data);
         setFilteredBikes(data);
+      } else {
+        console.warn('API returned non-array:', data);
       }
     } catch (error) {
       console.error('Error fetching bikes:', error);
@@ -79,16 +81,18 @@ export default function BikesPage() {
         body: JSON.stringify(editingBike ? { ...bikeData, id: editingBike.id } : bikeData),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || 'Failed to save bike');
+        throw new Error(data.error || 'Failed to save bike');
       }
 
-      showToastMessage(editingBike ? 'Bike updated successfully!' : 'Bike added successfully!', 'success');
       setShowForm(false);
       setEditingBike(null);
       fetchBikes();
+      showToastMessage(editingBike ? 'Bike updated successfully!' : 'Bike added successfully!', 'success');
     } catch (error: any) {
+      console.error('Save error:', error);
       showToastMessage(error.message || 'Failed to save bike', 'error');
     }
   };

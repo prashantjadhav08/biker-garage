@@ -42,8 +42,20 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { bike_number, bike_name, customer_name, mobile } = body;
+    let bike_number = '';
+    let bike_name = '';
+    let customer_name = '';
+    let mobile = '';
+
+    try {
+      const body = await request.json();
+      bike_number = body.bike_number || '';
+      bike_name = body.bike_name || '';
+      customer_name = body.customer_name || '';
+      mobile = body.mobile || '';
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
 
     if (!bike_number || !bike_name || !customer_name || !mobile) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
