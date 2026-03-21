@@ -229,7 +229,7 @@ export default function BillingPage() {
               <option value="">-- Select a Bike --</option>
               {bikes.map((bike) => (
                 <option key={bike.id} value={bike.id}>
-                  {bike.bike_number} - {bike.bike_name} ({bike.customer_name})
+                  {bike.bike_name} - {bike.bike_number}
                 </option>
               ))}
             </select>
