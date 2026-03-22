@@ -14,6 +14,7 @@ export function setAuthToken(): void {
 export function clearAuthToken(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem('chakra_auth');
+    localStorage.removeItem('chakra_role');
   }
 }
 
@@ -22,4 +23,19 @@ export function isAuthenticated(): boolean {
     return localStorage.getItem('chakra_auth') === 'true';
   }
   return false;
+}
+
+export function getUserRole(): 'admin' | 'staff' | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('chakra_role') as 'admin' | 'staff' | null;
+  }
+  return null;
+}
+
+export function isStaff(): boolean {
+  return getUserRole() === 'staff';
+}
+
+export function isAdmin(): boolean {
+  return getUserRole() === 'admin';
 }

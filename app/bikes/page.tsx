@@ -9,6 +9,15 @@ import BikeForm from '@/components/BikeForm';
 import BikeCard from '@/components/BikeCard';
 import Toast from '@/components/Toast';
 
+function getBikes(): Bike[] {
+  const stored = localStorage.getItem('chakra_bikes');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveBikes(bikes: Bike[]) {
+  localStorage.setItem('chakra_bikes', JSON.stringify(bikes));
+}
+
 export default function BikesPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
   const [filteredBikes, setFilteredBikes] = useState<Bike[]>([]);
@@ -26,7 +35,10 @@ export default function BikesPage() {
       router.push('/login');
       return;
     }
-    fetchBikes();
+    const data = getBikes();
+    setBikes(data);
+    setFilteredBikes(data);
+    setIsLoading(false);
   }, [router]);
 
   const handleLogout = () => {
@@ -45,24 +57,6 @@ export default function BikesPage() {
     setFilteredBikes(filtered);
   }, [searchTerm, bikes]);
 
-  const fetchBikes = async () => {
-    try {
-      const res = await fetch('/api/bikes');
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setBikes(data);
-        setFilteredBikes(data);
-      } else {
-        console.warn('API returned non-array:', data);
-      }
-    } catch (error) {
-      console.error('Error fetching bikes:', error);
-      showToastMessage('Failed to fetch bikes', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const showToastMessage = (message: string, type: 'success' | 'error') => {
     setToastMessage(message);
     setToastType(type);
@@ -70,31 +64,38 @@ export default function BikesPage() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleSave = async (bikeData: Partial<Bike>) => {
-    try {
-      const url = editingBike ? '/api/bikes' : '/api/bikes';
-      const method = editingBike ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingBike ? { ...bikeData, id: editingBike.id } : bikeData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to save bike');
+  const handleSave = (bikeData: Partial<Bike>) => {
+    const allBikes = getBikes();
+    
+    if (editingBike) {
+      const index = allBikes.findIndex(b => b.id === editingBike.id);
+      if (index !== -1) {
+        allBikes[index] = { ...allBikes[index], ...bikeData } as Bike;
+        saveBikes(allBikes);
+        setBikes([...allBikes]);
+        showToastMessage('Bike updated successfully!', 'success');
       }
-
-      setShowForm(false);
-      setEditingBike(null);
-      fetchBikes();
-      showToastMessage(editingBike ? 'Bike updated successfully!' : 'Bike added successfully!', 'success');
-    } catch (error: any) {
-      console.error('Save error:', error);
-      showToastMessage(error.message || 'Failed to save bike', 'error');
+    } else {
+      if (allBikes.some(b => b.bike_number?.toLowerCase() === bikeData.bike_number?.toLowerCase())) {
+        showToastMessage('Bike number already exists!', 'error');
+        return;
+      }
+      const newBike: Bike = {
+        id: Date.now().toString(),
+        bike_number: bikeData.bike_number?.toUpperCase() || '',
+        bike_name: bikeData.bike_name || '',
+        customer_name: bikeData.customer_name || '',
+        mobile: bikeData.mobile || '',
+        created_at: new Date().toISOString(),
+      };
+      const updatedBikes = [newBike, ...allBikes];
+      saveBikes(updatedBikes);
+      setBikes(updatedBikes);
+      showToastMessage('Bike added successfully!', 'success');
     }
+    
+    setShowForm(false);
+    setEditingBike(null);
   };
 
   const handleEdit = (bike: Bike) => {
@@ -102,17 +103,14 @@ export default function BikesPage() {
     setShowForm(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     if (!confirm('Are you sure you want to delete this bike?')) return;
-
-    try {
-      const res = await fetch(`/api/bikes?id=${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete bike');
-      showToastMessage('Bike deleted successfully!', 'success');
-      fetchBikes();
-    } catch {
-      showToastMessage('Failed to delete bike', 'error');
-    }
+    
+    const allBikes = getBikes();
+    const filtered = allBikes.filter(b => b.id !== id);
+    saveBikes(filtered);
+    setBikes(filtered);
+    showToastMessage('Bike deleted successfully!', 'success');
   };
 
   const handleCloseForm = () => {

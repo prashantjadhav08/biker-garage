@@ -10,6 +10,20 @@ import Toast from '@/components/Toast';
 import { generatePDF } from '@/lib/pdf';
 import ShareButton from '@/components/ShareButton';
 
+function getBikes(): Bike[] {
+  const stored = localStorage.getItem('chakra_bikes');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function getBills(): Bill[] {
+  const stored = localStorage.getItem('chakra_bills');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function saveBills(bills: Bill[]) {
+  localStorage.setItem('chakra_bills', JSON.stringify(bills));
+}
+
 export default function BillingPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
   const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
@@ -43,7 +57,8 @@ export default function BillingPage() {
       router.push('/login');
       return;
     }
-    fetchBikes();
+    setBikes(getBikes());
+    setIsLoading(false);
   }, [router]);
 
   const handleLogout = () => {
@@ -63,21 +78,6 @@ export default function BillingPage() {
 
     setCalculations({ subtotal, gst_amount, total });
   }, [formData.service_amount, formData.parts_amount, formData.gst_percent, formData.discount]);
-
-  const fetchBikes = async () => {
-    try {
-      const res = await fetch('/api/bikes');
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setBikes(data);
-      }
-    } catch (error) {
-      console.error('Error fetching bikes:', error);
-      showToastMessage('Failed to fetch bikes', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const showToastMessage = (message: string, type: 'success' | 'error') => {
     setToastMessage(message);
@@ -120,7 +120,7 @@ export default function BillingPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -129,51 +129,52 @@ export default function BillingPage() {
 
     setIsSubmitting(true);
 
-    try {
-      const billData = {
-        bike_id: selectedBike?.id,
-        bike_number: selectedBike?.bike_number,
-        bike_name: selectedBike?.bike_name,
-        customer_name: selectedBike?.customer_name,
-        mobile: selectedBike?.mobile,
-        service_desc: formData.service_desc.trim(),
-        service_amount: parseFloat(formData.service_amount) || 0,
-        parts_amount: parseFloat(formData.parts_amount) || 0,
-        gst_percent: parseFloat(formData.gst_percent),
-        discount: parseFloat(formData.discount) || 0,
-      };
+    const serviceAmt = parseFloat(formData.service_amount) || 0;
+    const partsAmt = parseFloat(formData.parts_amount) || 0;
+    const gstPct = parseFloat(formData.gst_percent) || 0;
+    const discountAmt = parseFloat(formData.discount) || 0;
 
-      const res = await fetch('/api/bills', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(billData),
-      });
+    const subtotal = serviceAmt + partsAmt;
+    const gst_amount = subtotal * (gstPct / 100);
+    const total = Math.max(0, subtotal + gst_amount - discountAmt);
 
-      const data = await res.json();
+    const bill_number = `CK${Date.now().toString().slice(-6)}`;
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create bill');
-      }
+    const newBill: Bill = {
+      id: Date.now().toString(),
+      bill_number,
+      bike_id: selectedBike?.id || '',
+      bike_number: selectedBike?.bike_number || '',
+      bike_name: selectedBike?.bike_name || '',
+      customer_name: selectedBike?.customer_name || '',
+      mobile: selectedBike?.mobile || '',
+      service_desc: formData.service_desc.trim(),
+      service_amount: serviceAmt,
+      parts_amount: partsAmt,
+      gst_percent: gstPct,
+      gst_amount,
+      discount: discountAmt,
+      total,
+      created_at: new Date().toISOString(),
+    };
 
-      setCurrentBill(data);
-      setShowBill(true);
-      showToastMessage('Bill created successfully!', 'success');
+    const allBills = getBills();
+    saveBills([newBill, ...allBills]);
 
-      setFormData({
-        bike_id: '',
-        service_desc: '',
-        service_amount: '',
-        parts_amount: '',
-        gst_percent: '18',
-        discount: '',
-      });
-      setSelectedBike(null);
-    } catch (error: any) {
-      console.error('Error creating bill:', error);
-      showToastMessage(error.message || 'Failed to create bill', 'error');
-    } finally {
-      setIsSubmitting(false);
-    }
+    setCurrentBill(newBill);
+    setShowBill(true);
+    showToastMessage('Bill created successfully!', 'success');
+
+    setFormData({
+      bike_id: '',
+      service_desc: '',
+      service_amount: '',
+      parts_amount: '',
+      gst_percent: '18',
+      discount: '',
+    });
+    setSelectedBike(null);
+    setIsSubmitting(false);
   };
 
   const handlePrint = () => {

@@ -7,6 +7,22 @@ import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { Bike, Bill } from '@/lib/types';
 import Navigation from '@/components/Navigation';
 
+function getBikes(): Bike[] {
+  const stored = localStorage.getItem('chakra_bikes');
+  return stored ? JSON.parse(stored) : [];
+}
+
+function getRecentBills(): Bill[] {
+  const stored = localStorage.getItem('chakra_bills');
+  const bills: Bill[] = stored ? JSON.parse(stored) : [];
+  
+  const daysAgo = new Date();
+  daysAgo.setDate(daysAgo.getDate() - 7);
+  
+  return bills.filter((b) => new Date(b.created_at) >= daysAgo)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
 export default function DashboardPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
   const [recentBills, setRecentBills] = useState<Bill[]>([]);
@@ -25,52 +41,30 @@ export default function DashboardPage() {
       router.push('/login');
       return;
     }
-    fetchData();
+    if (localStorage.getItem('chakra_role') === 'staff') {
+      router.push('/bikes');
+      return;
+    }
+    const bikesData = getBikes();
+    const billsData = getRecentBills();
+    
+    setBikes(bikesData);
+    setRecentBills(billsData.slice(0, 5));
+    
+    const totalRevenue = billsData.reduce((sum: number, bill: Bill) => sum + (bill.total || 0), 0);
+    setStats({
+      totalBikes: bikesData.length,
+      totalBills: billsData.length,
+      totalRevenue,
+      avgBill: billsData.length > 0 ? totalRevenue / billsData.length : 0,
+    });
+    
+    setIsLoading(false);
   }, [router]);
 
   const handleLogout = () => {
     clearAuthToken();
     router.push('/login');
-  };
-
-  const fetchData = async () => {
-    try {
-      setError(null);
-      const [bikesRes, billsRes] = await Promise.all([
-        fetch('/api/bikes'),
-        fetch('/api/bills?days=7'),
-      ]);
-
-      const bikesData = await bikesRes.json();
-      const billsData = await billsRes.json();
-
-      if (!Array.isArray(bikesData)) {
-        console.warn('Bikes API returned error:', bikesData);
-        setBikes([]);
-      } else {
-        setBikes(bikesData);
-      }
-
-      if (!Array.isArray(billsData)) {
-        console.warn('Bills API returned error:', billsData);
-        setRecentBills([]);
-        setStats({ totalBikes: bikes.length, totalBills: 0, totalRevenue: 0, avgBill: 0 });
-      } else {
-        setRecentBills(billsData.slice(0, 5));
-        const totalRevenue = billsData.reduce((sum: number, bill: Bill) => sum + (bill.total || 0), 0);
-        setStats({
-          totalBikes: Array.isArray(bikesData) ? bikesData.length : 0,
-          totalBills: billsData.length,
-          totalRevenue,
-          avgBill: billsData.length > 0 ? totalRevenue / billsData.length : 0,
-        });
-      }
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to load data. Please check your connection.');
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   if (isLoading) {
@@ -87,9 +81,6 @@ export default function DashboardPage() {
         <Navigation onLogout={handleLogout} />
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 mt-6">
           {error}
-          <button onClick={fetchData} className="ml-4 underline hover:no-underline">
-            Retry
-          </button>
         </div>
       </main>
     );
@@ -100,16 +91,16 @@ export default function DashboardPage() {
       <Navigation onLogout={handleLogout} />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-mono font-bold text-primary">Dashboard</h1>
-          <p className="text-slate-500 mt-1">Welcome to Chakra Management System</p>
+          <h1 className="text-3xl font-mono font-bold text-primary dark:text-white">Dashboard</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Welcome to Chakra Management System</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm">Total Bikes</p>
-                <p className="text-3xl font-mono font-bold text-primary mt-1">{stats.totalBikes}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Total Bikes</p>
+                <p className="text-3xl font-mono font-bold text-primary dark:text-white mt-1">{stats.totalBikes}</p>
               </div>
               <div className="bg-cta/10 p-3 rounded-lg">
                 <svg className="w-6 h-6 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -119,11 +110,11 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm">Bills (7 Days)</p>
-                <p className="text-3xl font-mono font-bold text-primary mt-1">{stats.totalBills}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Bills (7 Days)</p>
+                <p className="text-3xl font-mono font-bold text-primary dark:text-white mt-1">{stats.totalBills}</p>
               </div>
               <div className="bg-green-500/10 p-3 rounded-lg">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,10 +124,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm">Revenue (7 Days)</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Revenue (7 Days)</p>
                 <p className="text-3xl font-mono font-bold text-green-600 mt-1">
                   ₹{stats.totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
                 </p>
@@ -149,10 +140,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-slate-500 text-sm">Avg. Bill Value</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm">Avg. Bill Value</p>
                 <p className="text-3xl font-mono font-bold text-cta mt-1">
                   ₹{stats.avgBill.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
                 </p>

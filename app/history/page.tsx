@@ -10,6 +10,17 @@ import Toast from '@/components/Toast';
 import { generatePDF } from '@/lib/pdf';
 import ShareButton from '@/components/ShareButton';
 
+function getBills(): Bill[] {
+  const stored = localStorage.getItem('chakra_bills');
+  const bills: Bill[] = stored ? JSON.parse(stored) : [];
+  
+  const daysAgo = new Date();
+  daysAgo.setDate(daysAgo.getDate() - 7);
+  
+  return bills.filter((b) => new Date(b.created_at) >= daysAgo)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+}
+
 export default function HistoryPage() {
   const [bills, setBills] = useState<Bill[]>([]);
   const [filteredBills, setFilteredBills] = useState<Bill[]>([]);
@@ -27,7 +38,14 @@ export default function HistoryPage() {
       router.push('/login');
       return;
     }
-    fetchBills();
+    if (localStorage.getItem('chakra_role') === 'staff') {
+      router.push('/bikes');
+      return;
+    }
+    const data = getBills();
+    setBills(data);
+    setFilteredBills(data);
+    setIsLoading(false);
   }, [router]);
 
   const handleLogout = () => {
@@ -46,27 +64,45 @@ export default function HistoryPage() {
     setFilteredBills(filtered);
   }, [searchTerm, bills]);
 
-  const fetchBills = async () => {
-    try {
-      const res = await fetch('/api/bills?days=7');
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setBills(data);
-        setFilteredBills(data);
-      }
-    } catch (error) {
-      console.error('Error fetching bills:', error);
-      showToastMessage('Failed to fetch bills', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const showToastMessage = (message: string, type: 'success' | 'error') => {
     setToastMessage(message);
     setToastType(type);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const exportToCSV = () => {
+    if (filteredBills.length === 0) {
+      showToastMessage('No data to export', 'error');
+      return;
+    }
+
+    const headers = ['Bill No', 'Date', 'Bike Number', 'Bike Name', 'Customer', 'Mobile', 'Service Description', 'Service Amount', 'Parts Amount', 'GST', 'GST Amount', 'Discount', 'Total'];
+    const rows = filteredBills.map(bill => [
+      bill.bill_number,
+      new Date(bill.created_at).toLocaleDateString('en-IN'),
+      bill.bike_number,
+      bill.bike_name,
+      bill.customer_name,
+      bill.mobile,
+      bill.service_desc.replace(/,/g, ';'),
+      bill.service_amount.toString(),
+      bill.parts_amount.toString(),
+      bill.gst_percent.toString(),
+      bill.gst_amount.toString(),
+      bill.discount.toString(),
+      bill.total.toString()
+    ]);
+
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Chakra_Bills_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToastMessage('CSV exported successfully!', 'success');
   };
 
   const viewBill = (bill: Bill) => {
@@ -137,8 +173,8 @@ export default function HistoryPage() {
           </div>
         </div>
 
-        <div className="mb-6">
-          <div className="relative">
+        <div className="flex gap-4 mb-6">
+          <div className="relative flex-1">
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
               fill="none"
@@ -155,6 +191,15 @@ export default function HistoryPage() {
               className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg"
             />
           </div>
+          <button
+            onClick={exportToCSV}
+            className="flex items-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Export CSV
+          </button>
         </div>
 
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
