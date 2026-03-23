@@ -4,24 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { isAuthenticated, clearAuthToken } from '@/lib/auth';
+import { getBikes, getBills } from '@/lib/services';
 import { Bike, Bill } from '@/lib/types';
 import Navigation from '@/components/Navigation';
-
-function getBikes(): Bike[] {
-  const stored = localStorage.getItem('chakra_bikes');
-  return stored ? JSON.parse(stored) : [];
-}
-
-function getRecentBills(): Bill[] {
-  const stored = localStorage.getItem('chakra_bills');
-  const bills: Bill[] = stored ? JSON.parse(stored) : [];
-  
-  const daysAgo = new Date();
-  daysAgo.setDate(daysAgo.getDate() - 7);
-  
-  return bills.filter((b) => new Date(b.created_at) >= daysAgo)
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-}
 
 export default function DashboardPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
@@ -45,22 +30,33 @@ export default function DashboardPage() {
       router.push('/bikes');
       return;
     }
-    const bikesData = getBikes();
-    const billsData = getRecentBills();
-    
-    setBikes(bikesData);
-    setRecentBills(billsData.slice(0, 5));
-    
-    const totalRevenue = billsData.reduce((sum: number, bill: Bill) => sum + (bill.total || 0), 0);
-    setStats({
-      totalBikes: bikesData.length,
-      totalBills: billsData.length,
-      totalRevenue,
-      avgBill: billsData.length > 0 ? totalRevenue / billsData.length : 0,
-    });
-    
-    setIsLoading(false);
+    fetchData();
   }, [router]);
+
+  const fetchData = async () => {
+    try {
+      const [bikesData, billsData] = await Promise.all([
+        getBikes(),
+        getBills(7),
+      ]);
+
+      setBikes(bikesData);
+      setRecentBills(billsData.slice(0, 5));
+      
+      const totalRevenue = billsData.reduce((sum: number, bill: Bill) => sum + (bill.total || 0), 0);
+      setStats({
+        totalBikes: bikesData.length,
+        totalBills: billsData.length,
+        totalRevenue,
+        avgBill: billsData.length > 0 ? totalRevenue / billsData.length : 0,
+      });
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setError('Failed to load data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     clearAuthToken();
@@ -89,7 +85,7 @@ export default function DashboardPage() {
   return (
     <>
       <Navigation onLogout={handleLogout} />
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
           <h1 className="text-3xl font-mono font-bold text-primary dark:text-white">Dashboard</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Welcome to Chakra Management System</p>

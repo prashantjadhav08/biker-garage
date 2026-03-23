@@ -3,20 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, clearAuthToken } from '@/lib/auth';
+import { getBikes, createBike, updateBike, deleteBike } from '@/lib/services';
 import { Bike } from '@/lib/types';
 import Navigation from '@/components/Navigation';
 import BikeForm from '@/components/BikeForm';
 import BikeCard from '@/components/BikeCard';
 import Toast from '@/components/Toast';
-
-function getBikes(): Bike[] {
-  const stored = localStorage.getItem('chakra_bikes');
-  return stored ? JSON.parse(stored) : [];
-}
-
-function saveBikes(bikes: Bike[]) {
-  localStorage.setItem('chakra_bikes', JSON.stringify(bikes));
-}
 
 export default function BikesPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
@@ -35,11 +27,21 @@ export default function BikesPage() {
       router.push('/login');
       return;
     }
-    const data = getBikes();
-    setBikes(data);
-    setFilteredBikes(data);
-    setIsLoading(false);
+    fetchData();
   }, [router]);
+
+  const fetchData = async () => {
+    try {
+      const data = await getBikes();
+      setBikes(data);
+      setFilteredBikes(data);
+    } catch (error) {
+      console.error('Error fetching bikes:', error);
+      showToastMessage('Failed to fetch bikes', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     clearAuthToken();
@@ -64,36 +66,29 @@ export default function BikesPage() {
     setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleSave = (bikeData: Partial<Bike>) => {
-    const allBikes = getBikes();
-    
-    if (editingBike) {
-      const index = allBikes.findIndex(b => b.id === editingBike.id);
-      if (index !== -1) {
-        allBikes[index] = { ...allBikes[index], ...bikeData } as Bike;
-        saveBikes(allBikes);
-        setBikes([...allBikes]);
+  const handleSave = async (bikeData: Partial<Bike>) => {
+    try {
+      if (editingBike) {
+        await updateBike(editingBike.id, bikeData);
         showToastMessage('Bike updated successfully!', 'success');
+      } else {
+        await createBike({
+          bike_number: bikeData.bike_number || '',
+          bike_name: bikeData.bike_name || '',
+          customer_name: bikeData.customer_name || '',
+          mobile: bikeData.mobile || '',
+        });
+        showToastMessage('Bike added successfully!', 'success');
       }
-    } else {
-      if (allBikes.some(b => b.bike_number?.toLowerCase() === bikeData.bike_number?.toLowerCase())) {
+      await fetchData();
+    } catch (error: any) {
+      console.error('Error saving bike:', error);
+      if (error.code === '23505') {
         showToastMessage('Bike number already exists!', 'error');
-        return;
+      } else {
+        showToastMessage(error.message || 'Failed to save bike', 'error');
       }
-      const newBike: Bike = {
-        id: Date.now().toString(),
-        bike_number: bikeData.bike_number?.toUpperCase() || '',
-        bike_name: bikeData.bike_name || '',
-        customer_name: bikeData.customer_name || '',
-        mobile: bikeData.mobile || '',
-        created_at: new Date().toISOString(),
-      };
-      const updatedBikes = [newBike, ...allBikes];
-      saveBikes(updatedBikes);
-      setBikes(updatedBikes);
-      showToastMessage('Bike added successfully!', 'success');
     }
-    
     setShowForm(false);
     setEditingBike(null);
   };
@@ -103,14 +98,16 @@ export default function BikesPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this bike?')) return;
-    
-    const allBikes = getBikes();
-    const filtered = allBikes.filter(b => b.id !== id);
-    saveBikes(filtered);
-    setBikes(filtered);
-    showToastMessage('Bike deleted successfully!', 'success');
+    try {
+      await deleteBike(id);
+      showToastMessage('Bike deleted successfully!', 'success');
+      await fetchData();
+    } catch (error) {
+      console.error('Error deleting bike:', error);
+      showToastMessage('Failed to delete bike', 'error');
+    }
   };
 
   const handleCloseForm = () => {
@@ -129,7 +126,7 @@ export default function BikesPage() {
   return (
     <>
       <Navigation onLogout={handleLogout} />
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 flex-1">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-mono font-bold text-primary">Bike Management</h1>
@@ -151,8 +148,7 @@ export default function BikesPage() {
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
               fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+              stroke="currentColor" viewBox="0 0 24 24"
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>

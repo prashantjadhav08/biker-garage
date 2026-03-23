@@ -3,23 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, clearAuthToken } from '@/lib/auth';
+import { getBills } from '@/lib/services';
 import { Bill } from '@/lib/types';
 import Navigation from '@/components/Navigation';
 import Modal from '@/components/Modal';
 import Toast from '@/components/Toast';
 import { generatePDF } from '@/lib/pdf';
 import ShareButton from '@/components/ShareButton';
-
-function getBills(): Bill[] {
-  const stored = localStorage.getItem('chakra_bills');
-  const bills: Bill[] = stored ? JSON.parse(stored) : [];
-  
-  const daysAgo = new Date();
-  daysAgo.setDate(daysAgo.getDate() - 7);
-  
-  return bills.filter((b) => new Date(b.created_at) >= daysAgo)
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-}
 
 export default function HistoryPage() {
   const [bills, setBills] = useState<Bill[]>([]);
@@ -42,11 +32,20 @@ export default function HistoryPage() {
       router.push('/bikes');
       return;
     }
-    const data = getBills();
-    setBills(data);
-    setFilteredBills(data);
-    setIsLoading(false);
+    fetchData();
   }, [router]);
+
+  const fetchData = async () => {
+    try {
+      const data = await getBills(7);
+      setBills(data);
+      setFilteredBills(data);
+    } catch (error) {
+      console.error('Error fetching bills:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     clearAuthToken();
@@ -144,7 +143,7 @@ export default function HistoryPage() {
   return (
     <>
       <Navigation onLogout={handleLogout} />
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 flex-1">
         <div className="mb-8">
           <h1 className="text-3xl font-mono font-bold text-primary">Billing History</h1>
           <p className="text-slate-500 mt-1">View bills from the last 7 days</p>
