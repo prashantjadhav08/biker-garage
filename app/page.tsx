@@ -7,6 +7,7 @@ import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { getBikes, getBills } from '@/lib/services';
 import { Bike, Bill } from '@/lib/types';
 import Navigation from '@/components/Navigation';
+import LoadingWheel from '@/components/LoadingWheel';
 
 export default function DashboardPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
@@ -64,11 +65,7 @@ export default function DashboardPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cta"></div>
-      </div>
-    );
+    return <LoadingWheel />;
   }
 
   if (error) {

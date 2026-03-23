@@ -6,6 +6,7 @@ import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { getBikes, createBike, updateBike, deleteBike } from '@/lib/services';
 import { Bike } from '@/lib/types';
 import Navigation from '@/components/Navigation';
+import LoadingWheel from '@/components/LoadingWheel';
 import BikeForm from '@/components/BikeForm';
 import BikeCard from '@/components/BikeCard';
 import Toast from '@/components/Toast';
@@ -116,11 +117,7 @@ export default function BikesPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cta"></div>
-      </div>
-    );
+    return <LoadingWheel />;
   }
 
   return (

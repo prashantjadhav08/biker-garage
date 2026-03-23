@@ -6,6 +6,7 @@ import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { getBikes, createBill } from '@/lib/services';
 import { Bike, Bill } from '@/lib/types';
 import Navigation from '@/components/Navigation';
+import LoadingWheel from '@/components/LoadingWheel';
 import Modal from '@/components/Modal';
 import Toast from '@/components/Toast';
 import { generatePDF } from '@/lib/pdf';
@@ -178,11 +179,7 @@ export default function BillingPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cta"></div>
-      </div>
-    );
+    return <LoadingWheel />;
   }
 
   return (
