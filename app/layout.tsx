@@ -15,6 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body className="bg-slate-50 dark:bg-slate-900 min-h-screen transition-colors flex flex-col">
         <ThemeProvider>
           {children}

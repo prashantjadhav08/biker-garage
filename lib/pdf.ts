@@ -1,6 +1,13 @@
 import { jsPDF } from 'jspdf';
 import { Bill } from './types';
 
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+  }).format(amount);
+};
+
 export function generatePDF(bill: Bill) {
   const blob = generatePDFBlob(bill);
   const url = URL.createObjectURL(blob);
@@ -117,25 +124,25 @@ function generatePDFBlob(bill: Bill): Blob {
 
   doc.setTextColor(71, 85, 105);
   doc.text('Service Amount:', 20, yPos);
-  doc.text(`₹${bill.service_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, pageWidth - 20, yPos, { align: 'right' });
+  doc.text(formatCurrency(bill.service_amount), pageWidth - 20, yPos, { align: 'right' });
   yPos += 7;
 
   if (bill.parts_amount > 0) {
     doc.text('Parts Amount:', 20, yPos);
-    doc.text(`₹${bill.parts_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, pageWidth - 20, yPos, { align: 'right' });
+    doc.text(formatCurrency(bill.parts_amount), pageWidth - 20, yPos, { align: 'right' });
     yPos += 7;
   }
 
   if (bill.gst_amount > 0) {
     doc.text(`GST (${bill.gst_percent}%):`, 20, yPos);
-    doc.text(`₹${bill.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, pageWidth - 20, yPos, { align: 'right' });
+    doc.text(formatCurrency(bill.gst_amount), pageWidth - 20, yPos, { align: 'right' });
     yPos += 7;
   }
 
   if (bill.discount > 0) {
     doc.setTextColor(220, 38, 38);
     doc.text('Discount:', 20, yPos);
-    doc.text(`-₹${bill.discount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, pageWidth - 20, yPos, { align: 'right' });
+    doc.text(`-${formatCurrency(bill.discount)}`, pageWidth - 20, yPos, { align: 'right' });
     yPos += 7;
   }
 
@@ -148,7 +155,7 @@ function generatePDFBlob(bill: Bill): Blob {
   doc.setTextColor(30, 41, 59);
   doc.text('Total Amount:', 20, yPos);
   doc.setTextColor(220, 38, 38);
-  doc.text(`₹${bill.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, pageWidth - 20, yPos, { align: 'right' });
+  doc.text(formatCurrency(bill.total), pageWidth - 20, yPos, { align: 'right' });
 
   doc.setFontSize(10);
   doc.setTextColor(100, 116, 139);
@@ -180,10 +187,10 @@ Mobile: ${bill.mobile}
 *Service:* ${bill.service_desc}
 
 *Amount Details:*
-Service: ₹${bill.service_amount.toLocaleString('en-IN')}
-${bill.parts_amount > 0 ? `Parts: ₹${bill.parts_amount.toLocaleString('en-IN')}\n` : ''}${bill.gst_amount > 0 ? `GST (${bill.gst_percent}%): ₹${bill.gst_amount.toLocaleString('en-IN')}\n` : ''}${bill.discount > 0 ? `Discount: -₹${bill.discount.toLocaleString('en-IN')}\n` : ''}
+Service: ${formatCurrency(bill.service_amount)}
+${bill.parts_amount > 0 ? `Parts: ${formatCurrency(bill.parts_amount)}\n` : ''}${bill.gst_amount > 0 ? `GST (${bill.gst_percent}%): ${formatCurrency(bill.gst_amount)}\n` : ''}${bill.discount > 0 ? `Discount: -${formatCurrency(bill.discount)}\n` : ''}
 
-*Total: ₹${bill.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}*
+*Total: ${formatCurrency(bill.total)}*
 
 Thank you for choosing Chakra!`;
 

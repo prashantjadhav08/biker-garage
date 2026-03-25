@@ -43,6 +43,7 @@ export default function BillingPage() {
 
   const [selectedParts, setSelectedParts] = useState<{ name: string; price: number }[]>([]);
   const [selectedServices, setSelectedServices] = useState<{ name: string; price: number }[]>([]);
+  const [manualNotes, setManualNotes] = useState('');
   const [activeTab, setActiveTab] = useState<'services' | 'parts'>('services');
 
   useEffect(() => {
@@ -100,9 +101,18 @@ export default function BillingPage() {
   const updateServiceDesc = (parts: { name: string; price: number }[], services: { name: string; price: number }[]) => {
     const partsDesc = parts.map(p => p.name).join(', ');
     const servicesDesc = services.map(s => s.name).join(', ');
-    const existingManual = formData.service_desc;
     const allItems = [servicesDesc, partsDesc].filter(Boolean).join(' | ');
-    const combined = allItems ? `${allItems}${existingManual ? '\n' + existingManual : ''}` : existingManual;
+    
+    let combined = '';
+    if (allItems) {
+      combined = allItems;
+      if (manualNotes) {
+        combined += `\n\nNotes: ${manualNotes}`;
+      }
+    } else if (manualNotes) {
+      combined = manualNotes;
+    }
+    
     setFormData((prev) => ({ ...prev, service_desc: combined }));
   };
 
@@ -141,12 +151,7 @@ export default function BillingPage() {
   };
 
   const getSelectedItemsDesc = () => {
-    const partsDesc = selectedParts.map(p => p.name).join(', ');
-    const servicesDesc = selectedServices.map(s => s.name).join(', ');
-    const manualDesc = formData.service_desc;
-    
-    const allItems = [servicesDesc, partsDesc, manualDesc].filter(Boolean).join(', ');
-    return allItems || 'Service';
+    return formData.service_desc.trim() || 'Service';
   };
 
   const getPartsTotal = () => selectedParts.reduce((sum, p) => sum + p.price, 0);
@@ -157,6 +162,10 @@ export default function BillingPage() {
     
     if (['service_amount', 'parts_amount', 'discount'].includes(name)) {
       if (value && parseFloat(value) < 0) return;
+    }
+
+    if (name === 'service_desc') {
+      setManualNotes(value);
     }
     
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -188,9 +197,6 @@ export default function BillingPage() {
     setIsSubmitting(true);
 
     try {
-      const serviceAmt = (parseFloat(formData.service_amount) || 0) + getServicesTotal();
-      const partsAmt = (parseFloat(formData.parts_amount) || 0) + getPartsTotal();
-
       const newBill = await createBill({
         bike_id: selectedBike?.id || '',
         bike_number: selectedBike?.bike_number || '',
@@ -198,8 +204,8 @@ export default function BillingPage() {
         customer_name: selectedBike?.customer_name || '',
         mobile: selectedBike?.mobile || '',
         service_desc: getSelectedItemsDesc(),
-        service_amount: serviceAmt,
-        parts_amount: partsAmt,
+        service_amount: parseFloat(formData.service_amount) || 0,
+        parts_amount: parseFloat(formData.parts_amount) || 0,
         gst_percent: parseFloat(formData.gst_percent),
         discount: parseFloat(formData.discount) || 0,
       });
@@ -219,6 +225,7 @@ export default function BillingPage() {
       setSelectedBike(null);
       setSelectedParts([]);
       setSelectedServices([]);
+      setManualNotes('');
     } catch (error: any) {
       console.error('Error creating bill:', error);
       showToastMessage(error.message || 'Failed to create bill', 'error');
