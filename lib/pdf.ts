@@ -2,10 +2,11 @@ import { jsPDF } from 'jspdf';
 import { Bill } from './types';
 
 const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
+  const formatted = new Intl.NumberFormat('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
+  return `Rs. ${formatted}`;
 };
 
 export function generatePDF(bill: Bill) {
@@ -109,6 +110,11 @@ function generatePDFBlob(bill: Bill): Blob {
 
   let yPos = 125;
 
+  const servicesFromItems = bill.service_items?.reduce((sum, item) => sum + item.price, 0) || 0;
+  const partsFromItems = bill.parts_items?.reduce((sum, item) => sum + item.price, 0) || 0;
+  const serviceAdjustment = bill.service_amount - servicesFromItems;
+  const partsAdjustment = bill.parts_amount - partsFromItems;
+
   if (bill.service_items && bill.service_items.length > 0) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
@@ -122,6 +128,12 @@ function generatePDFBlob(bill: Bill): Blob {
       doc.text(formatCurrency(item.price), pageWidth - 20, yPos, { align: 'right' });
       yPos += 5;
     });
+    if (serviceAdjustment !== 0) {
+      doc.setTextColor(serviceAdjustment > 0 ? 22 : 220, serviceAdjustment > 0 ? 163 : 38, serviceAdjustment > 0 ? 94 : 38);
+      doc.text(`Manual Adjustment:`, 25, yPos);
+      doc.text(`${serviceAdjustment > 0 ? '+' : ''}${formatCurrency(serviceAdjustment)}`, pageWidth - 20, yPos, { align: 'right' });
+      yPos += 5;
+    }
   } else if (bill.service_amount > 0) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
@@ -148,6 +160,12 @@ function generatePDFBlob(bill: Bill): Blob {
       doc.text(formatCurrency(item.price), pageWidth - 20, yPos, { align: 'right' });
       yPos += 5;
     });
+    if (partsAdjustment !== 0) {
+      doc.setTextColor(partsAdjustment > 0 ? 22 : 220, partsAdjustment > 0 ? 163 : 38, partsAdjustment > 0 ? 94 : 38);
+      doc.text(`Manual Adjustment:`, 25, yPos);
+      doc.text(`${partsAdjustment > 0 ? '+' : ''}${formatCurrency(partsAdjustment)}`, pageWidth - 20, yPos, { align: 'right' });
+      yPos += 5;
+    }
   } else if (bill.parts_amount > 0) {
     yPos += 3;
     doc.setFontSize(10);

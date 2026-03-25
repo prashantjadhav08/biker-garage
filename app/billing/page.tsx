@@ -539,48 +539,77 @@ export default function BillingPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {currentBill.service_items && currentBill.service_items.length > 0 ? (
-                      currentBill.service_items.map((item, idx) => (
-                        <tr key={`service-${idx}`} className="border-b">
-                          <td className="px-3 py-2">Service: {item.name}</td>
-                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      currentBill.service_amount > 0 && (
-                        <tr className="border-b">
-                          <td className="px-3 py-2">{currentBill.service_desc}</td>
-                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.service_amount)}</td>
-                        </tr>
-                      )
-                    )}
-                    {currentBill.parts_items && currentBill.parts_items.length > 0 ? (
-                      currentBill.parts_items.map((item, idx) => (
-                        <tr key={`part-${idx}`} className="border-b">
-                          <td className="px-3 py-2">Part: {item.name}</td>
-                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      currentBill.parts_amount > 0 && (
-                        <tr className="border-b">
-                          <td className="px-3 py-2">Parts</td>
-                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.parts_amount)}</td>
-                        </tr>
-                      )
-                    )}
-                    {currentBill.gst_amount > 0 && (
-                      <tr className="border-b">
-                        <td className="px-3 py-2">GST ({currentBill.gst_percent}%)</td>
-                        <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.gst_amount)}</td>
-                      </tr>
-                    )}
-                    {currentBill.discount > 0 && (
-                      <tr className="border-b text-red-600">
-                        <td className="px-3 py-2">Discount</td>
-                        <td className="px-3 py-2 text-right">-{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.discount)}</td>
-                      </tr>
-                    )}
+                    {(() => {
+                      const servicesFromItems = currentBill.service_items?.reduce((sum, item) => sum + item.price, 0) || 0;
+                      const partsFromItems = currentBill.parts_items?.reduce((sum, item) => sum + item.price, 0) || 0;
+                      const serviceAdjustment = currentBill.service_amount - servicesFromItems;
+                      const partsAdjustment = currentBill.parts_amount - partsFromItems;
+
+                      return (
+                        <>
+                          {currentBill.service_items && currentBill.service_items.length > 0 ? (
+                            <>
+                              {currentBill.service_items.map((item, idx) => (
+                                <tr key={`service-${idx}`} className="border-b">
+                                  <td className="px-3 py-2">Service: {item.name}</td>
+                                  <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}</td>
+                                </tr>
+                              ))}
+                              {serviceAdjustment !== 0 && (
+                                <tr key="service-adjustment" className="border-b">
+                                  <td className="px-3 py-2 text-slate-500">Manual Adjustment</td>
+                                  <td className={`px-3 py-2 text-right ${serviceAdjustment > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {serviceAdjustment > 0 ? '+' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(serviceAdjustment)}
+                                  </td>
+                                </tr>
+                              )}
+                            </>
+                          ) : currentBill.service_amount > 0 ? (
+                            <tr className="border-b">
+                              <td className="px-3 py-2">{currentBill.service_desc}</td>
+                              <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.service_amount)}</td>
+                            </tr>
+                          ) : null}
+
+                          {currentBill.parts_items && currentBill.parts_items.length > 0 ? (
+                            <>
+                              {currentBill.parts_items.map((item, idx) => (
+                                <tr key={`part-${idx}`} className="border-b">
+                                  <td className="px-3 py-2">Part: {item.name}</td>
+                                  <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}</td>
+                                </tr>
+                              ))}
+                              {partsAdjustment !== 0 && (
+                                <tr key="parts-adjustment" className="border-b">
+                                  <td className="px-3 py-2 text-slate-500">Manual Adjustment</td>
+                                  <td className={`px-3 py-2 text-right ${partsAdjustment > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                    {partsAdjustment > 0 ? '+' : ''}{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(partsAdjustment)}
+                                  </td>
+                                </tr>
+                              )}
+                            </>
+                          ) : currentBill.parts_amount > 0 ? (
+                            <tr className="border-b">
+                              <td className="px-3 py-2">Parts</td>
+                              <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.parts_amount)}</td>
+                            </tr>
+                          ) : null}
+
+                          {currentBill.gst_amount > 0 && (
+                            <tr className="border-b">
+                              <td className="px-3 py-2">GST ({currentBill.gst_percent}%)</td>
+                              <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.gst_amount)}</td>
+                            </tr>
+                          )}
+                          {currentBill.discount > 0 && (
+                            <tr className="border-b text-red-600">
+                              <td className="px-3 py-2">Discount</td>
+                              <td className="px-3 py-2 text-right">-{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.discount)}</td>
+                            </tr>
+                          )}
+                        </>
+                      );
+                    })()}
                   </tbody>
                 </table>
               </div>
