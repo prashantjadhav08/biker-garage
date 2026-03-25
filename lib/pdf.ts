@@ -2,6 +2,47 @@ import { jsPDF } from 'jspdf';
 import { Bill } from './types';
 
 export function generatePDF(bill: Bill) {
+  const blob = generatePDFBlob(bill);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Chakra_Bill_${bill.bill_number}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function numberToWords(num: number): string {
+  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+  if (num === 0) return 'Zero';
+
+  const intNum = Math.floor(num);
+
+  if (intNum < 20) return ones[intNum];
+
+  if (intNum < 100) {
+    return tens[Math.floor(intNum / 10)] + (intNum % 10 !== 0 ? ' ' + ones[intNum % 10] : '');
+  }
+
+  if (intNum < 1000) {
+    return ones[Math.floor(intNum / 100)] + ' Hundred' + (intNum % 100 !== 0 ? ' ' + numberToWords(intNum % 100) : '');
+  }
+
+  if (intNum < 100000) {
+    return numberToWords(Math.floor(intNum / 1000)) + ' Thousand' + (intNum % 1000 !== 0 ? ' ' + numberToWords(intNum % 1000) : '');
+  }
+
+  if (intNum < 10000000) {
+    return numberToWords(Math.floor(intNum / 100000)) + ' Lakh' + (intNum % 100000 !== 0 ? ' ' + numberToWords(intNum % 100000) : '');
+  }
+
+  return numberToWords(Math.floor(intNum / 10000000)) + ' Crore' + (intNum % 10000000 !== 0 ? ' ' + numberToWords(intNum % 10000000) : '');
+}
+
+function generatePDFBlob(bill: Bill): Blob {
   const doc = new jsPDF();
 
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -122,36 +163,7 @@ export function generatePDF(bill: Bill) {
   doc.text('Thank you for choosing Chakra!', pageWidth / 2, yPos + 30, { align: 'center' });
   doc.text('Please visit again!', pageWidth / 2, yPos + 36, { align: 'center' });
 
-  doc.save(`Chakra_Bill_${bill.bill_number}.pdf`);
-}
-
-function numberToWords(num: number): string {
-  const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-  const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-  if (num === 0) return 'Zero';
-
-  const intNum = Math.floor(num);
-
-  if (intNum < 20) return ones[intNum];
-
-  if (intNum < 100) {
-    return tens[Math.floor(intNum / 10)] + (intNum % 10 !== 0 ? ' ' + ones[intNum % 10] : '');
-  }
-
-  if (intNum < 1000) {
-    return ones[Math.floor(intNum / 100)] + ' Hundred' + (intNum % 100 !== 0 ? ' ' + numberToWords(intNum % 100) : '');
-  }
-
-  if (intNum < 100000) {
-    return numberToWords(Math.floor(intNum / 1000)) + ' Thousand' + (intNum % 1000 !== 0 ? ' ' + numberToWords(intNum % 1000) : '');
-  }
-
-  if (intNum < 10000000) {
-    return numberToWords(Math.floor(intNum / 100000)) + ' Lakh' + (intNum % 100000 !== 0 ? ' ' + numberToWords(intNum % 100000) : '');
-  }
-
-  return numberToWords(Math.floor(intNum / 10000000)) + ' Crore' + (intNum % 10000000 !== 0 ? ' ' + numberToWords(intNum % 10000000) : '');
+  return doc.output('blob');
 }
 
 export async function shareToWhatsApp(bill: Bill) {
@@ -175,24 +187,29 @@ ${bill.parts_amount > 0 ? `Parts: ₹${bill.parts_amount.toLocaleString('en-IN')
 
 Thank you for choosing Chakra!`;
 
-  if (navigator.share) {
+  if (navigator.share && navigator.canShare) {
     try {
-      await navigator.share({
+      const pdfBlob = generatePDFBlob(bill);
+      const pdfFile = new File([pdfBlob], `Chakra_Bill_${bill.bill_number}.pdf`, { type: 'application/pdf' });
+      
+      const shareData = {
         title: `Bill #${bill.bill_number} - Chakra`,
         text: message,
-      });
-      return true;
-    } catch (error) {
-      if ((error as Error).name !== 'AbortError') {
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
+        files: [pdfFile],
+      };
+
+      if (navigator.canShare(shareData)) {
+        await navigator.share(shareData);
         return true;
       }
-      return false;
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Share error:', error);
+      }
     }
-  } else {
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-    return true;
   }
+
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, '_blank');
+  return true;
 }

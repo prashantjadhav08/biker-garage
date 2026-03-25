@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { isAuthenticated, clearAuthToken } from '@/lib/auth';
 import { getBikes, createBill } from '@/lib/services';
 import { Bike, Bill } from '@/lib/types';
+import { bikeParts, serviceTypes } from '@/lib/parts';
 import Navigation from '@/components/Navigation';
 import LoadingWheel from '@/components/LoadingWheel';
 import Modal from '@/components/Modal';
@@ -39,6 +40,10 @@ export default function BillingPage() {
     gst_amount: 0,
     total: 0,
   });
+
+  const [selectedParts, setSelectedParts] = useState<{ name: string; price: number }[]>([]);
+  const [selectedServices, setSelectedServices] = useState<{ name: string; price: number }[]>([]);
+  const [activeTab, setActiveTab] = useState<'services' | 'parts'>('services');
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -92,6 +97,61 @@ export default function BillingPage() {
     setErrors((prev) => ({ ...prev, bike_id: '' }));
   };
 
+  const updateServiceDesc = (parts: { name: string; price: number }[], services: { name: string; price: number }[]) => {
+    const partsDesc = parts.map(p => p.name).join(', ');
+    const servicesDesc = services.map(s => s.name).join(', ');
+    const existingManual = formData.service_desc;
+    const allItems = [servicesDesc, partsDesc].filter(Boolean).join(' | ');
+    const combined = allItems ? `${allItems}${existingManual ? '\n' + existingManual : ''}` : existingManual;
+    setFormData((prev) => ({ ...prev, service_desc: combined }));
+  };
+
+  const addPart = (part: { name: string; price: number }) => {
+    const currentPartsAmt = parseFloat(formData.parts_amount) || 0;
+    const newParts = [...selectedParts, part];
+    setFormData((prev) => ({ ...prev, parts_amount: String(currentPartsAmt + part.price) }));
+    setSelectedParts(newParts);
+    updateServiceDesc(newParts, selectedServices);
+  };
+
+  const removePart = (index: number) => {
+    const removedPart = selectedParts[index];
+    const currentPartsAmt = parseFloat(formData.parts_amount) || 0;
+    const newParts = selectedParts.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, parts_amount: String(Math.max(0, currentPartsAmt - removedPart.price)) }));
+    setSelectedParts(newParts);
+    updateServiceDesc(newParts, selectedServices);
+  };
+
+  const addService = (service: { name: string; price: number }) => {
+    const currentServiceAmt = parseFloat(formData.service_amount) || 0;
+    const newServices = [...selectedServices, service];
+    setFormData((prev) => ({ ...prev, service_amount: String(currentServiceAmt + service.price) }));
+    setSelectedServices(newServices);
+    updateServiceDesc(selectedParts, newServices);
+  };
+
+  const removeService = (index: number) => {
+    const removedService = selectedServices[index];
+    const currentServiceAmt = parseFloat(formData.service_amount) || 0;
+    const newServices = selectedServices.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, service_amount: String(Math.max(0, currentServiceAmt - removedService.price)) }));
+    setSelectedServices(newServices);
+    updateServiceDesc(selectedParts, newServices);
+  };
+
+  const getSelectedItemsDesc = () => {
+    const partsDesc = selectedParts.map(p => p.name).join(', ');
+    const servicesDesc = selectedServices.map(s => s.name).join(', ');
+    const manualDesc = formData.service_desc;
+    
+    const allItems = [servicesDesc, partsDesc, manualDesc].filter(Boolean).join(', ');
+    return allItems || 'Service';
+  };
+
+  const getPartsTotal = () => selectedParts.reduce((sum, p) => sum + p.price, 0);
+  const getServicesTotal = () => selectedServices.reduce((sum, s) => sum + s.price, 0);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
@@ -128,15 +188,18 @@ export default function BillingPage() {
     setIsSubmitting(true);
 
     try {
+      const serviceAmt = (parseFloat(formData.service_amount) || 0) + getServicesTotal();
+      const partsAmt = (parseFloat(formData.parts_amount) || 0) + getPartsTotal();
+
       const newBill = await createBill({
         bike_id: selectedBike?.id || '',
         bike_number: selectedBike?.bike_number || '',
         bike_name: selectedBike?.bike_name || '',
         customer_name: selectedBike?.customer_name || '',
         mobile: selectedBike?.mobile || '',
-        service_desc: formData.service_desc.trim(),
-        service_amount: parseFloat(formData.service_amount) || 0,
-        parts_amount: parseFloat(formData.parts_amount) || 0,
+        service_desc: getSelectedItemsDesc(),
+        service_amount: serviceAmt,
+        parts_amount: partsAmt,
         gst_percent: parseFloat(formData.gst_percent),
         discount: parseFloat(formData.discount) || 0,
       });
@@ -154,6 +217,8 @@ export default function BillingPage() {
         discount: '',
       });
       setSelectedBike(null);
+      setSelectedParts([]);
+      setSelectedServices([]);
     } catch (error: any) {
       console.error('Error creating bill:', error);
       showToastMessage(error.message || 'Failed to create bill', 'error');
@@ -251,21 +316,76 @@ export default function BillingPage() {
             </h3>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Quick Selection - Services */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Quick Add Services
+                </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {serviceTypes.map((service, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => addService(service)}
+                      className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 transition-colors"
+                    >
+                      + {service.name} (₹{service.price})
+                    </button>
+                  ))}
+                </div>
+                {selectedServices.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedServices.map((s, idx) => (
+                      <span key={idx} className="text-xs px-2 py-1 bg-blue-600 text-white rounded-full flex items-center gap-1">
+                        {s.name} (₹{s.price})
+                        <button type="button" onClick={() => removeService(idx)} className="ml-1 hover:text-red-200">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Selection - Parts */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Quick Add Parts
+                </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {bikeParts.slice(0, 15).map((part, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => addPart(part)}
+                      className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full hover:bg-green-200 transition-colors"
+                    >
+                      + {part.name} (₹{part.price})
+                    </button>
+                  ))}
+                </div>
+                {selectedParts.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {selectedParts.map((p, idx) => (
+                      <span key={idx} className="text-xs px-2 py-1 bg-green-600 text-white rounded-full flex items-center gap-1">
+                        {p.name} (₹{p.price})
+                        <button type="button" onClick={() => removePart(idx)} className="ml-1 hover:text-red-200">×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Service Description *
+                  Service Description
                 </label>
                 <textarea
                   name="service_desc"
                   value={formData.service_desc}
                   onChange={handleChange}
-                  rows={3}
-                  placeholder="Oil change, brake repair, general service, etc."
-                  className={`w-full p-3 border rounded-lg resize-none ${
-                    errors.service_desc ? 'border-red-500' : 'border-slate-200'
-                  }`}
+                  rows={2}
+                  placeholder="Additional notes..."
+                  className="w-full p-3 border border-slate-200 rounded-lg resize-none"
                 />
-                {errors.service_desc && <p className="text-red-500 text-sm mt-1">{errors.service_desc}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
