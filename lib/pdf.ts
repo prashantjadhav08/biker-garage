@@ -107,31 +107,62 @@ function generatePDFBlob(bill: Bill): Blob {
   doc.setTextColor(30, 41, 59);
   doc.text('Service Details', 20, 115);
 
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Description:', 20, 125);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(71, 85, 105);
+  let yPos = 125;
 
-  const splitDesc = doc.splitTextToSize(bill.service_desc, pageWidth - 50);
-  doc.text(splitDesc, 20, 132);
+  if (bill.service_items && bill.service_items.length > 0) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Services:', 20, yPos);
+    yPos += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    bill.service_items.forEach((item) => {
+      doc.text(`${item.name}:`, 25, yPos);
+      doc.text(formatCurrency(item.price), pageWidth - 20, yPos, { align: 'right' });
+      yPos += 5;
+    });
+  } else if (bill.service_amount > 0) {
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Service:', 20, yPos);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    const splitDesc = doc.splitTextToSize(bill.service_desc, pageWidth - 60);
+    doc.text(splitDesc, 35, yPos);
+    yPos += splitDesc.length * 5;
+  }
 
-  let yPos = 132 + (splitDesc.length * 5) + 10;
+  if (bill.parts_items && bill.parts_items.length > 0) {
+    yPos += 3;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 41, 59);
+    doc.text('Parts:', 20, yPos);
+    yPos += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    bill.parts_items.forEach((item) => {
+      doc.text(`${item.name}:`, 25, yPos);
+      doc.text(formatCurrency(item.price), pageWidth - 20, yPos, { align: 'right' });
+      yPos += 5;
+    });
+  } else if (bill.parts_amount > 0) {
+    yPos += 3;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(71, 85, 105);
+    doc.text('Parts:', 20, yPos);
+    doc.text(formatCurrency(bill.parts_amount), pageWidth - 20, yPos, { align: 'right' });
+    yPos += 7;
+  } else {
+    yPos += 7;
+  }
 
   doc.setDrawColor(226, 232, 240);
   doc.line(20, yPos, pageWidth - 20, yPos);
   yPos += 8;
-
-  doc.setTextColor(71, 85, 105);
-  doc.text('Service Amount:', 20, yPos);
-  doc.text(formatCurrency(bill.service_amount), pageWidth - 20, yPos, { align: 'right' });
-  yPos += 7;
-
-  if (bill.parts_amount > 0) {
-    doc.text('Parts Amount:', 20, yPos);
-    doc.text(formatCurrency(bill.parts_amount), pageWidth - 20, yPos, { align: 'right' });
-    yPos += 7;
-  }
 
   if (bill.gst_amount > 0) {
     doc.text(`GST (${bill.gst_percent}%):`, 20, yPos);

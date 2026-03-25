@@ -204,6 +204,8 @@ export default function BillingPage() {
         customer_name: selectedBike?.customer_name || '',
         mobile: selectedBike?.mobile || '',
         service_desc: getSelectedItemsDesc(),
+        service_items: selectedServices,
+        parts_items: selectedParts,
         service_amount: parseFloat(formData.service_amount) || 0,
         parts_amount: parseFloat(formData.parts_amount) || 0,
         gst_percent: parseFloat(formData.gst_percent),
@@ -537,26 +539,46 @@ export default function BillingPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-b">
-                      <td className="px-3 py-2">{currentBill.service_desc}</td>
-                      <td className="px-3 py-2 text-right">₹{currentBill.service_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                    </tr>
-                    {currentBill.parts_amount > 0 && (
-                      <tr className="border-b">
-                        <td className="px-3 py-2">Parts</td>
-                        <td className="px-3 py-2 text-right">₹{currentBill.parts_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                      </tr>
+                    {currentBill.service_items && currentBill.service_items.length > 0 ? (
+                      currentBill.service_items.map((item, idx) => (
+                        <tr key={`service-${idx}`} className="border-b">
+                          <td className="px-3 py-2">Service: {item.name}</td>
+                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      currentBill.service_amount > 0 && (
+                        <tr className="border-b">
+                          <td className="px-3 py-2">{currentBill.service_desc}</td>
+                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.service_amount)}</td>
+                        </tr>
+                      )
+                    )}
+                    {currentBill.parts_items && currentBill.parts_items.length > 0 ? (
+                      currentBill.parts_items.map((item, idx) => (
+                        <tr key={`part-${idx}`} className="border-b">
+                          <td className="px-3 py-2">Part: {item.name}</td>
+                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      currentBill.parts_amount > 0 && (
+                        <tr className="border-b">
+                          <td className="px-3 py-2">Parts</td>
+                          <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.parts_amount)}</td>
+                        </tr>
+                      )
                     )}
                     {currentBill.gst_amount > 0 && (
                       <tr className="border-b">
                         <td className="px-3 py-2">GST ({currentBill.gst_percent}%)</td>
-                        <td className="px-3 py-2 text-right">₹{currentBill.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        <td className="px-3 py-2 text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.gst_amount)}</td>
                       </tr>
                     )}
                     {currentBill.discount > 0 && (
                       <tr className="border-b text-red-600">
                         <td className="px-3 py-2">Discount</td>
-                        <td className="px-3 py-2 text-right">-₹{currentBill.discount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                        <td className="px-3 py-2 text-right">-{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.discount)}</td>
                       </tr>
                     )}
                   </tbody>
@@ -566,7 +588,7 @@ export default function BillingPage() {
               <div className="bg-primary text-white rounded-lg p-4">
                 <div className="flex justify-between items-center">
                   <span className="text-lg">Total Amount</span>
-                  <span className="text-2xl font-mono font-bold">₹{currentBill.total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <span className="text-2xl font-mono font-bold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(currentBill.total)}</span>
                 </div>
               </div>
 

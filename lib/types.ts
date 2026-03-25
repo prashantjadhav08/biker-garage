@@ -7,6 +7,11 @@ export interface Bike {
   created_at: string;
 }
 
+export interface BillItem {
+  name: string;
+  price: number;
+}
+
 export interface Bill {
   id: string;
   bill_number: string;
@@ -16,6 +21,8 @@ export interface Bill {
   customer_name: string;
   mobile: string;
   service_desc: string;
+  service_items: BillItem[];
+  parts_items: BillItem[];
   service_amount: number;
   parts_amount: number;
   gst_percent: number;
