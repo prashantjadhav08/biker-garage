@@ -124,55 +124,64 @@ export default function BikesPage() {
     <>
       <Navigation onLogout={handleLogout} />
       <main className="max-w-7xl mx-auto px-4 py-8 flex-1">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-mono font-bold text-primary">Bike Management</h1>
-            <p className="text-slate-500 mt-1">Manage registered bikes</p>
+            <h1 className="text-3xl font-mono font-bold text-primary dark:text-white">Bike Management</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Manage and track customer vehicles</p>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="btn-hover bg-cta text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 cursor-pointer"
+            className="btn-hover bg-cta text-white px-6 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cta/20"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
             </svg>
-            Add Bike
+            Register New Bike
           </button>
         </div>
 
-        <div className="mb-6">
+        <div className="mb-8 group">
           <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400"
-              fill="none"
-              stroke="currentColor" viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cta transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by bike number, name, or customer..."
-              className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-lg"
+              className="w-full pl-12 pr-6 py-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm focus:ring-4 focus:ring-cta/5 outline-none transition-all"
             />
           </div>
         </div>
 
         {filteredBikes.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-md">
-            <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <p className="text-slate-500 text-lg">
-              {searchTerm ? 'No bikes match your search' : 'No bikes registered yet'}
+          <div className="text-center py-20 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm fade-in">
+            <div className="bg-slate-50 dark:bg-slate-950 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-slate-300 dark:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-primary dark:text-white mb-2">
+              {searchTerm ? 'No results found' : 'No bikes registered'}
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+              {searchTerm 
+                ? `We couldn't find any bikes matching "${searchTerm}"` 
+                : 'Get started by adding your first customer vehicle to the system.'
+              }
             </p>
             {!searchTerm && (
               <button
                 onClick={() => setShowForm(true)}
-                className="mt-4 text-cta hover:text-red-700 font-medium cursor-pointer"
+                className="mt-8 text-cta hover:text-red-700 dark:hover:text-red-500 font-bold flex items-center gap-2 mx-auto transition-colors cursor-pointer"
               >
-                Add your first bike
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+                </svg>
+                Register First Bike
               </button>
             )}
           </div>
