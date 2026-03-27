@@ -44,58 +44,51 @@ export default function LoginPage() {
         localStorage.setItem('chakra_role', 'staff');
         router.push('/bikes');
       } else {
-        setError('Invalid username or password. Please try again.');
+        setError('Invalid username or password');
         setIsLoading(false);
       }
     }, 800);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950 transition-colors duration-500 relative overflow-hidden">
-      {/* Background Orbs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-cta/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-0 -right-4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-brand-black transition-colors duration-500 relative overflow-hidden">
+      {/* Background Kinetic Elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-accent/10 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
       
-      <div className="relative w-full max-w-md fade-in">
-        <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-slate-800/50 p-8 md:p-10">
-          <div className="text-center mb-10">
-            <div className="flex justify-center mb-6">
-              <div className="bg-cta p-4 rounded-2xl shadow-xl shadow-cta/20">
-                <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <circle cx="12" cy="12" r="10"/>
-                  <circle cx="12" cy="12" r="6"/>
-                  <circle cx="12" cy="12" r="2"/>
-                  <line x1="12" y1="2" x2="12" y2="6"/>
-                  <line x1="12" y1="18" x2="12" y2="22"/>
-                  <line x1="2" y1="12" x2="6" y2="12"/>
-                  <line x1="18" y1="12" x2="22" y2="12"/>
-                </svg>
+      <div className="relative w-full max-w-md fade-up">
+        <div className="glass-panel rounded-[2.5rem] p-10 md:p-12 relative overflow-hidden">
+          {/* Internal Glow */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          
+          <div className="text-center mb-12 relative z-10">
+            <div className="flex justify-center mb-8">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-brand-accent blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                <div className="bg-brand-accent p-5 rounded-3xl shadow-neon relative z-10 group-hover:scale-110 transition-transform duration-500">
+                  <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                  </svg>
+                </div>
               </div>
             </div>
-            <h1 className="text-3xl font-mono font-bold text-primary dark:text-white tracking-tighter">CHAKRA</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">Service Management System</p>
+            <h1 className="text-4xl font-display font-bold text-white tracking-tighter leading-none uppercase">CHAKRA</h1>
+            <p className="text-brand-accent font-display text-[10px] font-bold tracking-[0.5em] mt-3 opacity-80 uppercase">Service Portal</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
             {error && (
-              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-3 fade-in">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 px-5 py-4 rounded-2xl text-[10px] font-display font-bold tracking-widest flex items-center gap-3 fade-up uppercase">
+                <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-ping"></div>
                 {error}
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+            <div className="space-y-3">
+              <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] ml-2 uppercase">
                 Username
               </label>
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cta transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
                 <input
                   type="text"
                   value={username}
@@ -103,24 +96,19 @@ export default function LoginPage() {
                     setUsername(e.target.value);
                     setError('');
                   }}
-                  className="w-full p-4 pl-12 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-cta/10 outline-none transition-all"
-                  placeholder="Enter your username"
+                  className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:border-brand-accent/50 focus:ring-brand-accent/10 focus:ring-4 outline-none transition-all text-white font-mono placeholder:text-slate-700"
+                  placeholder="ENTER USERNAME"
                   autoComplete="username"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">
+            <div className="space-y-3">
+              <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] ml-2 uppercase">
                 Password
               </label>
               <div className="relative group">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cta transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -128,7 +116,7 @@ export default function LoginPage() {
                     setPassword(e.target.value);
                     setError('');
                   }}
-                  className="w-full p-4 pl-12 pr-12 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-cta/10 outline-none transition-all"
+                  className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:border-brand-accent/50 focus:ring-brand-accent/10 focus:ring-4 outline-none transition-all text-white font-mono placeholder:text-slate-700"
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
@@ -136,18 +124,12 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-cta cursor-pointer transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-brand-accent cursor-pointer transition-colors"
                 >
                   {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                   ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
                   )}
                 </button>
               </div>
@@ -156,7 +138,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-cta text-white py-4 rounded-2xl font-bold shadow-xl shadow-cta/20 hover:shadow-cta/30 btn-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
+              className="w-full bg-brand-accent text-white py-5 rounded-2xl font-display font-bold tracking-widest shadow-neon hover:shadow-neon-strong kinetic-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transition-all"
             >
               {isLoading ? (
                 <>
@@ -164,29 +146,31 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Verifying...
+                  Signing in...
                 </>
               ) : (
                 <>
-                  <span>Sign In to Dashboard</span>
+                  <span>LOGIN</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">
-              Authorized Access Only
+          <div className="mt-12 pt-8 border-t border-white/5 text-center relative z-10">
+            <p className="text-[10px] font-display font-bold text-slate-600 uppercase tracking-[0.3em]">
+              Authorized Personnel Only
             </p>
           </div>
         </div>
         
-        <p className="text-center text-slate-400 dark:text-slate-600 text-xs mt-8">
-          &copy; {new Date().getFullYear()} Chakra Systems. All rights reserved.
-        </p>
+        <div className="flex items-center justify-center gap-6 mt-10">
+          <span className="text-[10px] font-display font-bold text-slate-700 tracking-widest">© {new Date().getFullYear()}</span>
+          <div className="w-1 h-1 bg-slate-800 rounded-full"></div>
+          <span className="text-[10px] font-display font-bold text-slate-700 tracking-widest">Management System</span>
+        </div>
       </div>
     </div>
   );

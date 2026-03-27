@@ -53,7 +53,7 @@ export default function DashboardPage() {
       });
     } catch (error) {
       console.error('Error fetching data:', error);
-      setError('Failed to load data');
+      setError('Failed to fetch dashboard data');
     } finally {
       setIsLoading(false);
     }
@@ -68,131 +68,102 @@ export default function DashboardPage() {
     return <LoadingWheel />;
   }
 
-  if (error) {
-    return (
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <Navigation onLogout={handleLogout} />
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 mt-6">
-          {error}
-        </div>
-      </main>
-    );
-  }
-
   return (
-    <>
+    <div className="min-h-screen bg-brand-offwhite dark:bg-brand-black transition-colors duration-500">
       <Navigation onLogout={handleLogout} />
-      <main className="max-w-7xl mx-auto px-4 py-8 flex-1">
-        <div className="mb-8">
-          <h1 className="text-3xl font-mono font-bold text-primary dark:text-white">Dashboard</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Welcome to Chakra Management System</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Bikes</p>
-                <p className="text-3xl font-mono font-bold text-primary dark:text-white mt-1">{stats.totalBikes}</p>
-              </div>
-              <div className="bg-cta/10 p-3 rounded-lg ring-1 ring-cta/20">
-                <svg className="w-6 h-6 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-              </div>
-            </div>
+      <main className="max-w-7xl mx-auto px-6 py-12 flex-1 fade-up">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <div>
+            <span className="text-brand-accent font-display text-[10px] font-bold tracking-[0.4em] block mb-2 uppercase opacity-60">Welcome Back</span>
+            <h1 className="text-5xl font-display font-bold text-slate-900 dark:text-white leading-none uppercase">CHAKRA <span className="text-gradient">DASHBOARD</span></h1>
           </div>
-
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Bills (7 Days)</p>
-                <p className="text-3xl font-mono font-bold text-primary dark:text-white mt-1">{stats.totalBills}</p>
-              </div>
-              <div className="bg-green-500/10 p-3 rounded-lg ring-1 ring-green-500/20">
-                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenue (7 Days)</p>
-                <p className="text-3xl font-mono font-bold text-green-600 dark:text-green-500 mt-1">
-                  ₹{stats.totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
-                </p>
-              </div>
-              <div className="bg-accent/10 p-3 rounded-lg ring-1 ring-accent/20">
-                <svg className="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-shadow p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Avg. Bill Value</p>
-                <p className="text-3xl font-mono font-bold text-cta mt-1">
-                  ₹{stats.avgBill.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
-                </p>
-              </div>
-              <div className="bg-purple-500/10 p-3 rounded-lg ring-1 ring-purple-500/20">
-                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-            </div>
+          <div className="flex items-center gap-4 bg-white dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/5 px-6 py-3 rounded-2xl shadow-soft dark:shadow-none">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-display font-bold text-slate-500 dark:text-slate-400 tracking-widest uppercase">Live Status</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-primary dark:text-white">Recent Bikes</h2>
-              <Link href="/bikes" className="text-cta hover:text-red-700 dark:hover:text-red-500 text-sm font-medium cursor-pointer transition-colors">
-                View All →
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {[
+            { label: 'TOTAL BIKES', value: stats.totalBikes, icon: 'M12 19l9 2-9-18-9 18 9-2zm0 0v-8', color: 'brand-accent' },
+            { label: 'WEEKLY BILLS', value: stats.totalBills, icon: 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z', color: 'emerald-500' },
+            { label: 'TOTAL REVENUE', value: `₹${stats.totalRevenue.toLocaleString()}`, icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'emerald-400' },
+            { label: 'AVG BILL VALUE', value: `₹${Math.round(stats.avgBill).toLocaleString()}`, icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', color: 'brand-accent' }
+          ].map((stat, i) => (
+            <div key={i} className="glass-card p-8 group overflow-hidden relative bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 rounded-full -mr-16 -mt-16 group-hover:bg-brand-accent/10 transition-colors duration-500"></div>
+              <div className="flex flex-col relative z-10">
+                <div className={`w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500 shadow-soft dark:shadow-none`}>
+                  <svg className={`w-6 h-6 text-${stat.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={stat.icon} />
+                  </svg>
+                </div>
+                <p className="text-[10px] font-display font-bold text-slate-400 dark:text-slate-500 tracking-[0.2em] mb-1 uppercase">{stat.label}</p>
+                <p className="text-3xl font-mono font-bold text-slate-900 dark:text-white tracking-tighter">{stat.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          <div className="glass-card p-8 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white uppercase">RECENT <span className="text-brand-accent">BIKES</span></h2>
+              <Link href="/bikes" className="bg-slate-50 dark:bg-white/5 hover:bg-brand-accent hover:text-white px-4 py-2 rounded-lg text-[10px] font-display font-bold tracking-widest transition-all shadow-soft dark:shadow-none">
+                VIEW ALL →
               </Link>
             </div>
             {bikes.length === 0 ? (
-              <p className="text-slate-500 dark:text-slate-400 text-center py-8">No bikes registered yet</p>
+              <div className="h-48 flex items-center justify-center border border-dashed border-slate-200 dark:border-white/10 rounded-2xl">
+                <p className="text-slate-400 dark:text-slate-500 font-display text-xs tracking-widest uppercase">No bikes registered</p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {bikes.slice(0, 5).map((bike) => (
-                  <div key={bike.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-lg">
-                    <div>
-                      <p className="font-mono font-semibold text-primary dark:text-slate-100">{bike.bike_number}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{bike.bike_name}</p>
+                  <div key={bike.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 hover:border-brand-accent/20 transition-all group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-white dark:bg-brand-black flex items-center justify-center font-mono font-bold text-brand-accent text-xs shadow-soft dark:shadow-none border border-slate-100 dark:border-transparent">
+                        {bike.bike_number.slice(-2)}
+                      </div>
+                      <div>
+                        <p className="font-mono font-bold text-slate-900 dark:text-white text-sm tracking-tight uppercase">{bike.bike_number}</p>
+                        <p className="text-[10px] font-display font-bold text-slate-400 dark:text-slate-500 tracking-wider mt-0.5 uppercase">{bike.bike_name}</p>
+                      </div>
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{bike.customer_name}</p>
+                    <span className="text-[10px] font-display font-bold text-slate-400 dark:text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity uppercase">{bike.customer_name}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-primary dark:text-white">Recent Bills</h2>
-              <Link href="/history" className="text-cta hover:text-red-700 dark:hover:text-red-500 text-sm font-medium cursor-pointer transition-colors">
-                View All →
+          <div className="glass-card p-8 bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white uppercase">RECENT <span className="text-brand-accent">BILLS</span></h2>
+              <Link href="/history" className="bg-slate-50 dark:bg-white/5 hover:bg-brand-accent hover:text-white px-4 py-2 rounded-lg text-[10px] font-display font-bold tracking-widest transition-all shadow-soft dark:shadow-none">
+                VIEW ALL →
               </Link>
             </div>
             {recentBills.length === 0 ? (
-              <p className="text-slate-500 dark:text-slate-400 text-center py-8">No bills generated yet</p>
+              <div className="h-48 flex items-center justify-center border border-dashed border-slate-200 dark:border-white/10 rounded-2xl">
+                <p className="text-slate-400 dark:text-slate-500 font-display text-xs tracking-widest uppercase">No bills generated</p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {recentBills.map((bill) => (
-                  <div key={bill.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-lg">
-                    <div>
-                      <p className="font-mono font-semibold text-cta">{bill.bill_number}</p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">{bill.bike_number} - {bill.customer_name}</p>
+                  <div key={bill.id} className="flex items-center justify-between p-4 bg-slate-50/50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 hover:border-brand-accent/20 transition-all group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center border border-emerald-100 dark:border-transparent">
+                        <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-mono font-bold text-brand-accent text-sm tracking-tight uppercase">{bill.bill_number}</p>
+                        <p className="text-[10px] font-display font-bold text-slate-400 dark:text-slate-500 tracking-wider mt-0.5 uppercase">{bill.bike_number}</p>
+                      </div>
                     </div>
-                    <p className="font-mono font-semibold text-green-600 dark:text-green-500">₹{bill.total.toLocaleString('en-IN')}</p>
+                    <p className="font-mono font-bold text-slate-900 dark:text-white text-sm">₹{bill.total.toLocaleString()}</p>
                   </div>
                 ))}
               </div>
@@ -200,53 +171,30 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Link
-            href="/bikes"
-            className="card-hover bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6 flex items-center gap-4 cursor-pointer"
-          >
-            <div className="bg-cta/10 p-4 rounded-xl ring-1 ring-cta/20">
-              <svg className="w-8 h-8 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-primary dark:text-white text-lg">Register Bike</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Add new customer bike</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/billing"
-            className="card-hover bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6 flex items-center gap-4 cursor-pointer"
-          >
-            <div className="bg-green-500/10 p-4 rounded-xl ring-1 ring-green-500/20">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-primary dark:text-white text-lg">Create Bill</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Generate new invoice</p>
-            </div>
-          </Link>
-
-          <Link
-            href="/history"
-            className="card-hover bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm p-6 flex items-center gap-4 cursor-pointer"
-          >
-            <div className="bg-accent/10 p-4 rounded-xl ring-1 ring-accent/20">
-              <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-semibold text-primary dark:text-white text-lg">View History</h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">Last 7 days bills</p>
-            </div>
-          </Link>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { href: '/bikes', label: 'REGISTER BIKE', desc: 'Add new vehicle', icon: 'M12 4v16m8-8H4', color: 'brand-accent' },
+            { href: '/billing', label: 'CREATE BILL', desc: 'Generate invoice', icon: 'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z', color: 'emerald-500' },
+            { href: '/history', label: 'VIEW HISTORY', desc: 'Audit transactions', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', color: 'blue-400' }
+          ].map((action, i) => (
+            <Link
+              key={i}
+              href={action.href}
+              className="glass-card p-8 flex items-center gap-6 group kinetic-hover bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5"
+            >
+              <div className={`w-16 h-16 rounded-2xl bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-brand-accent/20 group-hover:shadow-neon transition-all duration-500 shadow-soft dark:shadow-none`}>
+                <svg className={`w-8 h-8 text-brand-accent group-hover:text-white transition-colors`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={action.icon} />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-display font-bold text-slate-900 dark:text-white text-lg tracking-tight group-hover:text-brand-accent transition-colors uppercase">{action.label}</h3>
+                <p className="text-[10px] font-display font-bold text-slate-400 dark:text-slate-500 tracking-widest mt-1 uppercase">{action.desc}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </main>
-    </>
+    </div>
   );
 }

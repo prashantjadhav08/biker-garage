@@ -83,13 +83,13 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={bike ? 'EDIT BIKE' : 'ADD NEW BIKE'}
+      title={bike ? 'Edit Bike' : 'Register New Bike'}
       size="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-brand-black p-2">
         <div className="group">
-          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2 group-focus-within:text-cta transition-colors">
-            Bike Number <span className="text-cta">*</span>
+          <label className="block text-[9px] font-display font-bold text-slate-500 tracking-[0.3em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
+            Bike Number
           </label>
           <input
             type="text"
@@ -97,14 +97,14 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
             value={formData.bike_number}
             onChange={handleChange}
             required
-            placeholder="e.g., MH12AB1234"
-            className="w-full p-3.5 border border-slate-200 dark:border-slate-800 rounded-xl uppercase font-mono tracking-wider focus:ring-4 focus:ring-cta/10 outline-none"
+            placeholder="e.g. MH12AB1234"
+            className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-white font-mono text-sm tracking-[0.2em] focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all uppercase placeholder:text-slate-800"
           />
         </div>
 
         <div className="relative group">
-          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2 group-focus-within:text-cta transition-colors">
-            Bike Name <span className="text-cta">*</span>
+          <label className="block text-[9px] font-display font-bold text-slate-500 tracking-[0.3em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
+            Bike Name / Model
           </label>
           <input
             type="text"
@@ -117,29 +117,27 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
               }
             }}
             required
-            placeholder="Search or type bike name"
-            className="w-full p-3.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-4 focus:ring-cta/10 outline-none"
+            placeholder="Search or enter model..."
+            className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-white font-display text-xs tracking-widest focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-800"
             autoComplete="off"
           />
           
           {showSuggestions && (
             <div
               ref={suggestionsRef}
-              className="absolute z-50 w-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl max-h-64 overflow-y-auto fade-in"
+              className="absolute z-50 w-full mt-3 bg-brand-black border border-white/10 rounded-[1.5rem] shadow-2xl max-h-64 overflow-y-auto fade-up backdrop-blur-xl"
             >
-              <div className="p-2 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-xs text-slate-500 font-bold uppercase tracking-widest">Popular Indian Bikes</span>
+              <div className="p-4 bg-white/5 border-b border-white/5">
+                <span className="text-[8px] font-display font-bold text-slate-500 tracking-widest uppercase">Popular Models</span>
               </div>
               {suggestions.map((suggestion, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full text-left px-4 py-3 hover:bg-cta/5 dark:hover:bg-cta/10 text-slate-700 dark:text-slate-200 cursor-pointer transition-colors flex items-center gap-2"
+                  className="w-full text-left px-6 py-4 hover:bg-brand-accent/10 text-slate-300 hover:text-brand-accent cursor-pointer transition-all flex items-center gap-4 font-display text-[10px] tracking-tight border-b border-white/5 last:border-0"
                 >
-                  <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+                  <div className="w-1 h-1 bg-brand-accent rounded-full"></div>
                   {suggestion}
                 </button>
               ))}
@@ -148,8 +146,8 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
         </div>
 
         <div className="group">
-          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2 group-focus-within:text-cta transition-colors">
-            Customer Name <span className="text-cta">*</span>
+          <label className="block text-[9px] font-display font-bold text-slate-500 tracking-[0.3em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
+            Customer Name
           </label>
           <input
             type="text"
@@ -157,47 +155,47 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
             value={formData.customer_name}
             onChange={handleChange}
             required
-            placeholder="e.g., John Doe"
-            className="w-full p-3.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-4 focus:ring-cta/10 outline-none"
+            placeholder="Enter customer name..."
+            className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-white font-display text-xs tracking-widest focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-800 uppercase"
           />
         </div>
 
         <div className="group">
-          <label className="block text-sm font-semibold text-slate-600 dark:text-slate-400 mb-2 group-focus-within:text-cta transition-colors">
-            Mobile Number <span className="text-cta">*</span>
+          <label className="block text-[9px] font-display font-bold text-slate-500 tracking-[0.3em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
+            Mobile Number
           </label>
           <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">+91</span>
+            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm">+91</span>
             <input
               type="tel"
               name="mobile"
               value={formData.mobile}
               onChange={handleChange}
               required
-              placeholder="9876543210"
-              className="w-full p-3.5 pl-12 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-4 focus:ring-cta/10 outline-none"
+              placeholder="0000000000"
+              className="w-full p-5 pl-16 bg-white/5 border border-white/5 rounded-2xl text-white font-mono text-sm tracking-[0.2em] focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-800"
               maxLength={10}
               pattern="[0-9]{10}"
             />
           </div>
         </div>
 
-        <div className="flex gap-4 pt-4">
+        <div className="flex gap-4 pt-6">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-4 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all"
+            className="flex-1 py-5 bg-white/5 text-slate-500 border border-white/5 rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] hover:text-white hover:bg-white/10 transition-all cursor-pointer uppercase"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="flex-1 py-4 bg-cta text-white rounded-xl font-bold btn-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 py-5 bg-brand-accent text-white rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] shadow-neon kinetic-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 uppercase"
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>

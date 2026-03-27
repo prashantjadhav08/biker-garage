@@ -173,11 +173,11 @@ export default function BillingPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.bike_id) {
-      newErrors.bike_id = 'Please select a bike';
+      newErrors.bike_id = 'Bike selection required';
     }
 
     if (!formData.service_desc.trim()) {
-      newErrors.service_desc = 'Please enter service description';
+      newErrors.service_desc = 'Service description required';
     }
 
     setErrors(newErrors);
@@ -211,7 +211,7 @@ export default function BillingPage() {
 
       setCurrentBill(newBill);
       setShowBill(true);
-      showToastMessage('Bill created successfully!', 'success');
+      showToastMessage('Invoice created successfully', 'success');
 
       setFormData({
         bike_id: '',
@@ -227,7 +227,7 @@ export default function BillingPage() {
       setManualNotes('');
     } catch (error: any) {
       console.error('Error creating bill:', error);
-      showToastMessage(error.message || 'Failed to create bill', 'error');
+      showToastMessage('Failed to create invoice', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -243,7 +243,7 @@ export default function BillingPage() {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'N/A';
-      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' });
+      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
     } catch {
       return 'N/A';
     }
@@ -254,68 +254,69 @@ export default function BillingPage() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-celero">
       <Navigation onLogout={handleLogout} />
-      <main className="max-w-7xl mx-auto px-4 py-8 flex-1">
-        <div className="mb-8">
-          <h1 className="text-3xl font-mono font-bold text-primary dark:text-white">Generate Invoice</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Create a new professional bill for bike services</p>
+      <main className="max-w-7xl mx-auto px-6 py-12 flex-1 fade-up">
+        <div className="mb-12">
+          <span className="text-brand-accent font-display text-[10px] font-bold tracking-[0.4em] block mb-2 uppercase">Billing System</span>
+          <h1 className="text-5xl font-display font-bold text-white leading-none uppercase">CREATE <span className="text-gradient">INVOICE</span></h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column: Bike Selection */}
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm p-6 md:p-8">
-              <h3 className="text-xl font-bold text-primary dark:text-white mb-6 flex items-center gap-3">
-                <div className="bg-cta/10 p-2 rounded-lg">
-                  <svg className="w-5 h-5 text-cta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="space-y-8">
+            <div className="glass-panel rounded-[2.5rem] p-8 md:p-10">
+              <h3 className="text-xl font-display font-bold text-white mb-8 flex items-center gap-4 uppercase">
+                <div className="bg-brand-accent/10 p-3 rounded-2xl">
+                  <svg className="w-6 h-6 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
                 </div>
-                Customer & Vehicle
+                Bike & Customer
               </h3>
 
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="group">
-                  <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 ml-1 group-focus-within:text-cta transition-colors">
-                    Select Registered Bike
+                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
+                    Select Bike
                   </label>
                   <select
                     name="bike_id"
                     value={formData.bike_id}
                     onChange={handleBikeSelect}
-                    className={`w-full p-4 bg-slate-50 dark:bg-slate-950 border rounded-2xl cursor-pointer focus:ring-4 focus:ring-cta/10 outline-none transition-all ${
-                      errors.bike_id ? 'border-rose-500' : 'border-slate-200 dark:border-slate-800'
+                    className={`w-full p-5 bg-white/5 border rounded-[1.5rem] cursor-pointer focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-sm tracking-tight ${
+                      errors.bike_id ? 'border-rose-500' : 'border-white/5'
                     }`}
                   >
-                    <option value="">-- Choose a vehicle --</option>
+                    <option value="" className="bg-brand-black">-- SELECT A BIKE --</option>
                     {bikes.map((bike) => (
-                      <option key={bike.id} value={bike.id}>
+                      <option key={bike.id} value={bike.id} className="bg-brand-black">
                         {bike.bike_number} — {bike.bike_name}
                       </option>
                     ))}
                   </select>
-                  {errors.bike_id && <p className="text-rose-500 text-xs mt-2 ml-1 font-medium">{errors.bike_id}</p>}
+                  {errors.bike_id && <p className="text-rose-500 text-[10px] font-display font-bold tracking-widest mt-3 ml-2 uppercase">{errors.bike_id}</p>}
                 </div>
 
                 {selectedBike && (
-                  <div className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 fade-in">
-                    <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 fade-up relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                    <div className="grid grid-cols-2 gap-8 relative z-10">
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Bike Number</span>
-                        <p className="font-mono font-bold text-primary dark:text-white">{selectedBike.bike_number}</p>
+                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Bike Number</span>
+                        <p className="font-mono font-bold text-brand-accent text-lg">{selectedBike.bike_number}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Vehicle Model</span>
-                        <p className="font-bold text-primary dark:text-white">{selectedBike.bike_name}</p>
+                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Bike Model</span>
+                        <p className="font-display font-bold text-white text-sm tracking-tight uppercase">{selectedBike.bike_name}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Customer Name</span>
-                        <p className="font-bold text-primary dark:text-white">{selectedBike.customer_name}</p>
+                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Customer</span>
+                        <p className="font-display font-bold text-white text-sm tracking-tight uppercase">{selectedBike.customer_name}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Contact Number</span>
-                        <p className="font-bold text-primary dark:text-white">+91 {selectedBike.mobile}</p>
+                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Mobile</span>
+                        <p className="font-display font-bold text-white text-sm tracking-tight">+91 {selectedBike.mobile}</p>
                       </div>
                     </div>
                   </div>
@@ -323,57 +324,59 @@ export default function BillingPage() {
               </div>
             </div>
 
-            {/* Quick Add Section */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden">
-              <div className="flex border-b border-slate-100 dark:border-slate-800">
+            {/* Catalog Section */}
+            <div className="glass-panel rounded-[2.5rem] overflow-hidden">
+              <div className="flex bg-white/5 p-1">
                 <button
                   onClick={() => setActiveTab('services')}
-                  className={`flex-1 py-4 text-sm font-bold tracking-tight transition-all ${
+                  className={`flex-1 py-4 text-[10px] font-display font-bold tracking-[0.3em] transition-all rounded-2xl uppercase ${
                     activeTab === 'services' 
-                      ? 'bg-cta/5 text-cta border-b-2 border-cta' 
-                      : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                      ? 'bg-brand-accent text-white shadow-neon' 
+                      : 'text-slate-500 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  SERVICE TYPES
+                  Services
                 </button>
                 <button
                   onClick={() => setActiveTab('parts')}
-                  className={`flex-1 py-4 text-sm font-bold tracking-tight transition-all ${
+                  className={`flex-1 py-4 text-[10px] font-display font-bold tracking-[0.3em] transition-all rounded-2xl uppercase ${
                     activeTab === 'parts' 
-                      ? 'bg-cta/5 text-cta border-b-2 border-cta' 
-                      : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                      ? 'bg-brand-accent text-white shadow-neon' 
+                      : 'text-slate-500 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  SPARE PARTS
+                  Spare Parts
                 </button>
               </div>
               
-              <div className="p-6 md:p-8 max-h-[400px] overflow-y-auto custom-scrollbar">
+              <div className="p-8 max-h-[450px] overflow-y-auto custom-scrollbar">
                 {activeTab === 'services' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {serviceTypes.map((service, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => addService(service)}
-                        className="p-3 text-left border border-slate-100 dark:border-slate-800 rounded-xl hover:border-cta/30 hover:bg-cta/5 transition-all group"
+                        className="p-5 text-left bg-white/5 border border-white/5 rounded-2xl hover:border-brand-accent/30 hover:bg-brand-accent/5 transition-all group relative overflow-hidden"
                       >
-                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-cta">{service.name}</p>
-                        <p className="text-xs text-slate-500 font-mono mt-1">₹{service.price}</p>
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-brand-accent/5 rounded-full -mr-8 -mt-8"></div>
+                        <p className="text-[11px] font-display font-bold text-slate-300 group-hover:text-brand-accent tracking-tighter mb-2 uppercase">{service.name}</p>
+                        <p className="text-sm font-mono font-bold text-white">₹{service.price}</p>
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {bikeParts.map((part, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => addPart(part)}
-                        className="p-3 text-left border border-slate-100 dark:border-slate-800 rounded-xl hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all group"
+                        className="p-5 text-left bg-white/5 border border-white/5 rounded-2xl hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all group relative overflow-hidden"
                       >
-                        <p className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-emerald-600">{part.name}</p>
-                        <p className="text-xs text-slate-500 font-mono mt-1">₹{part.price}</p>
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full -mr-8 -mt-8"></div>
+                        <p className="text-[11px] font-display font-bold text-slate-300 group-hover:text-emerald-500 tracking-tighter mb-2 uppercase">{part.name}</p>
+                        <p className="text-sm font-mono font-bold text-white">₹{part.price}</p>
                       </button>
                     ))}
                   </div>
@@ -382,41 +385,43 @@ export default function BillingPage() {
             </div>
           </div>
 
-          {/* Right Column: Bill Details */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm p-6 md:p-8">
-            <h3 className="text-xl font-bold text-primary dark:text-white mb-6 flex items-center gap-3">
-              <div className="bg-green-500/10 p-2 rounded-lg">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* Right Column: Billing Details */}
+          <div className="glass-panel rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 rounded-full -mr-32 -mt-32 blur-[80px]"></div>
+            
+            <h3 className="text-xl font-display font-bold text-white mb-8 flex items-center gap-4 relative z-10 uppercase">
+              <div className="bg-emerald-500/10 p-3 rounded-2xl">
+                <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
                 </svg>
               </div>
-              Billing Details
+              Billing Summary
             </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Selected Items Summary */}
+            <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+              {/* Selected Items List */}
               {(selectedServices.length > 0 || selectedParts.length > 0) && (
-                <div className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 space-y-3">
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Selected Items</h4>
-                  <div className="space-y-2">
+                <div className="bg-white/5 border border-white/5 rounded-[2rem] p-6 space-y-4">
+                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.4em] px-2 mb-4 uppercase">Selected Items</h4>
+                  <div className="space-y-3">
                     {selectedServices.map((s, idx) => (
-                      <div key={`s-${idx}`} className="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 fade-in">
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate pr-4">{s.name}</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-mono font-bold text-cta">₹{s.price}</span>
-                          <button type="button" onClick={() => removeService(idx)} className="p-1 text-slate-400 hover:text-rose-500 transition-colors">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      <div key={`s-${idx}`} className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5 fade-up">
+                        <span className="text-[11px] font-display font-bold text-slate-300 tracking-tight uppercase">{s.name}</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm font-mono font-bold text-brand-accent">₹{s.price}</span>
+                          <button type="button" onClick={() => removeService(idx)} className="p-1.5 text-slate-500 hover:text-rose-500 transition-colors bg-white/5 rounded-lg">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
                         </div>
                       </div>
                     ))}
                     {selectedParts.map((p, idx) => (
-                      <div key={`p-${idx}`} className="flex items-center justify-between bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 fade-in">
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate pr-4">{p.name}</span>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-mono font-bold text-emerald-600">₹{p.price}</span>
-                          <button type="button" onClick={() => removePart(idx)} className="p-1 text-slate-400 hover:text-rose-500 transition-colors">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      <div key={`p-${idx}`} className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5 fade-up">
+                        <span className="text-[11px] font-display font-bold text-slate-300 tracking-tight uppercase">{p.name}</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-sm font-mono font-bold text-emerald-500">₹{p.price}</span>
+                          <button type="button" onClick={() => removePart(idx)} className="p-1.5 text-slate-500 hover:text-rose-500 transition-colors bg-white/5 rounded-lg">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
                         </div>
                       </div>
@@ -426,7 +431,7 @@ export default function BillingPage() {
               )}
 
               <div className="group">
-                <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 ml-1 group-focus-within:text-cta transition-colors">
+                <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
                   Service Description & Notes
                 </label>
                 <textarea
@@ -434,17 +439,17 @@ export default function BillingPage() {
                   value={formData.service_desc}
                   onChange={handleChange}
                   rows={3}
-                  placeholder="Details of work performed..."
-                  className={`w-full p-4 bg-slate-50 dark:bg-slate-950 border rounded-2xl focus:ring-4 focus:ring-cta/10 outline-none transition-all resize-none ${
-                    errors.service_desc ? 'border-rose-500' : 'border-slate-200 dark:border-slate-800'
+                  placeholder="Enter details of service work..."
+                  className={`w-full p-5 bg-white/5 border rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all resize-none text-white font-mono text-sm ${
+                    errors.service_desc ? 'border-rose-500' : 'border-white/5'
                   }`}
                 />
-                {errors.service_desc && <p className="text-rose-500 text-xs mt-2 ml-1 font-medium">{errors.service_desc}</p>}
+                {errors.service_desc && <p className="text-rose-500 text-[10px] font-display font-bold tracking-widest mt-3 ml-2 uppercase">{errors.service_desc}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="group">
-                  <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 ml-1">
+                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
                     Service Total (₹)
                   </label>
                   <input
@@ -453,11 +458,11 @@ export default function BillingPage() {
                     value={formData.service_amount}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-cta/10 outline-none transition-all font-mono"
+                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-white"
                   />
                 </div>
                 <div className="group">
-                  <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 ml-1">
+                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
                     Parts Total (₹)
                   </label>
                   <input
@@ -466,31 +471,31 @@ export default function BillingPage() {
                     value={formData.parts_amount}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-cta/10 outline-none transition-all font-mono"
+                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-white"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="group">
-                  <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 ml-1">
+                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
                     GST Rate (%)
                   </label>
                   <select
                     name="gst_percent"
                     value={formData.gst_percent}
                     onChange={handleChange}
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-cta/10 outline-none cursor-pointer transition-all"
+                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none cursor-pointer transition-all text-white font-mono"
                   >
-                    <option value="0">0% (No Tax)</option>
-                    <option value="5">5% (GST)</option>
-                    <option value="12">12% (GST)</option>
-                    <option value="18">18% (GST)</option>
-                    <option value="28">28% (GST)</option>
+                    <option value="0" className="bg-brand-black">0% — No Tax</option>
+                    <option value="5" className="bg-brand-black">5% — GST</option>
+                    <option value="12" className="bg-brand-black">12% — GST</option>
+                    <option value="18" className="bg-brand-black">18% — GST</option>
+                    <option value="28" className="bg-brand-black">28% — GST</option>
                   </select>
                 </div>
                 <div className="group">
-                  <label className="block text-sm font-bold text-slate-600 dark:text-slate-400 mb-2 ml-1">
+                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
                     Discount (₹)
                   </label>
                   <input
@@ -499,38 +504,39 @@ export default function BillingPage() {
                     value={formData.discount}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl focus:ring-4 focus:ring-cta/10 outline-none transition-all font-mono text-rose-600"
+                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-rose-500"
                   />
                 </div>
               </div>
 
-              {/* Total Summary Card */}
-              <div className="bg-primary dark:bg-slate-950 text-white rounded-[2rem] p-8 shadow-2xl shadow-primary/20 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+              {/* Total Card */}
+              <div className="bg-brand-accent text-white rounded-[2.5rem] p-10 shadow-neon-strong relative overflow-hidden kinetic-hover group">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 transition-transform group-hover:scale-125"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-16 -mb-16"></div>
                 
-                <div className="space-y-4 relative z-10">
-                  <div className="flex justify-between items-center text-sm font-medium">
-                    <span className="text-slate-400">Subtotal</span>
-                    <span className="font-mono">₹{calculations.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <div className="space-y-5 relative z-10">
+                  <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] opacity-80 uppercase">
+                    <span>Subtotal</span>
+                    <span className="font-mono">₹{calculations.subtotal.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm font-medium">
-                    <span className="text-slate-400">GST ({formData.gst_percent}%)</span>
-                    <span className="font-mono">₹{calculations.gst_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] opacity-80 uppercase">
+                    <span>GST ({formData.gst_percent}%)</span>
+                    <span className="font-mono">₹{calculations.gst_amount.toLocaleString('en-IN')}</span>
                   </div>
                   {parseFloat(formData.discount) > 0 && (
-                    <div className="flex justify-between items-center text-sm font-bold text-rose-400">
-                      <span>Total Discount</span>
-                      <span className="font-mono">-₹{parseFloat(formData.discount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] text-black uppercase">
+                      <span>Discount</span>
+                      <span className="font-mono">-₹{parseFloat(formData.discount).toLocaleString('en-IN')}</span>
                     </div>
                   )}
-                  <div className="pt-6 border-t border-white/10 flex justify-between items-end">
+                  <div className="pt-8 border-t border-white/20 flex justify-between items-end">
                     <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Final Invoice Amount</span>
-                      <span className="text-4xl font-mono font-bold tracking-tighter">
-                        ₹{calculations.total.toLocaleString('en-IN', { minimumFractionDigits: 0 })}
+                      <span className="text-[10px] font-display font-bold text-white/60 uppercase tracking-[0.4em] block mb-2 uppercase">Final Amount</span>
+                      <span className="text-5xl font-mono font-bold tracking-tighter">
+                        ₹{Math.round(calculations.total).toLocaleString('en-IN')}
                       </span>
                     </div>
-                    <div className="text-[10px] font-bold text-green-500 uppercase tracking-widest bg-green-500/10 px-2 py-1 rounded-md mb-1.5">
+                    <div className="bg-white text-brand-accent px-4 py-2 rounded-xl text-[10px] font-display font-bold tracking-widest shadow-xl uppercase">
                       Ready
                     </div>
                   </div>
@@ -540,21 +546,21 @@ export default function BillingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-cta text-white py-5 rounded-2xl font-bold shadow-xl shadow-cta/20 hover:shadow-cta/30 btn-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 transition-all"
+                className="w-full bg-white text-brand-black py-6 rounded-[2rem] font-display font-bold tracking-[0.2em] text-sm shadow-2xl kinetic-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transition-all uppercase"
               >
                 {isSubmitting ? (
                   <>
-                    <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5 text-brand-accent" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Creating Bill...
+                    Processing...
                   </>
                 ) : (
                   <>
-                    <span>Generate Final Bill</span>
+                    <span>Generate Bill</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
                   </>
                 )}
@@ -563,7 +569,7 @@ export default function BillingPage() {
           </div>
         </div>
 
-        {/* Bill Result Modal */}
+        {/* Modal Invoice Result */}
         {showBill && currentBill && (
           <Modal
             isOpen={showBill}
@@ -571,103 +577,104 @@ export default function BillingPage() {
             title={`Invoice ${currentBill.bill_number}`}
             size="lg"
           >
-            <div className="space-y-6">
-              <div className="text-center pb-6 border-b border-slate-100 dark:border-slate-800">
-                <div className="bg-cta w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-cta/20">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-                  </svg>
-                </div>
-                <h2 className="text-2xl font-mono font-bold text-primary dark:text-white tracking-tighter">CHAKRA</h2>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Professional Bike Service</p>
-                <div className="flex items-center justify-center gap-4 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  <span>Bill No: {currentBill.bill_number}</span>
-                  <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                  <span>Date: {formatDate(currentBill.created_at)}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-8 bg-slate-50 dark:bg-slate-950 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <div>
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Vehicle Info</h4>
-                  <p className="text-sm font-bold text-primary dark:text-white">{currentBill.bike_name}</p>
-                  <p className="text-sm font-mono font-bold text-cta mt-0.5">{currentBill.bike_number}</p>
-                </div>
-                <div>
-                  <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Customer Info</h4>
-                  <p className="text-sm font-bold text-primary dark:text-white">{currentBill.customer_name}</p>
-                  <p className="text-sm text-slate-500 font-medium mt-0.5">+91 {currentBill.mobile}</p>
+            <div className="space-y-8 bg-brand-black p-4 rounded-3xl border border-white/5">
+              <div className="text-center pb-10 border-b border-white/5 relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-brand-accent/10 blur-[60px] rounded-full"></div>
+                <div className="relative z-10">
+                  <div className="bg-brand-accent w-16 h-16 rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 shadow-neon">
+                    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-display font-bold text-white tracking-tighter uppercase">CHAKRA</h2>
+                  <p className="text-[10px] font-display font-bold text-brand-accent tracking-[0.5em] mt-2 uppercase">Service Bill</p>
+                  <div className="flex items-center justify-center gap-6 mt-8 text-[9px] font-display font-bold text-slate-500 uppercase tracking-widest">
+                    <span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Bill No: {currentBill.bill_number}</span>
+                    <span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Date: {formatDate(currentBill.created_at)}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800">
+              <div className="grid grid-cols-2 gap-6 relative z-10">
+                <div className="bg-white/5 p-6 rounded-[1.5rem] border border-white/5">
+                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Bike Info</h4>
+                  <p className="text-xs font-display font-bold text-white mb-1 uppercase uppercase">{currentBill.bike_name}</p>
+                  <p className="font-mono font-bold text-brand-accent tracking-widest text-sm uppercase">{currentBill.bike_number}</p>
+                </div>
+                <div className="bg-white/5 p-6 rounded-[1.5rem] border border-white/5">
+                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Customer</h4>
+                  <p className="text-xs font-display font-bold text-white mb-1 uppercase uppercase">{currentBill.customer_name}</p>
+                  <p className="font-mono font-bold text-slate-400 text-sm uppercase">+91 {currentBill.mobile}</p>
+                </div>
+              </div>
+
+              <div className="border border-white/5 rounded-[2rem] overflow-hidden">
+                <table className="w-full text-left">
+                  <thead className="bg-white/5 border-b border-white/5">
                     <tr>
-                      <th className="px-4 py-3 text-left font-bold text-slate-500 uppercase tracking-widest text-[10px]">Description</th>
-                      <th className="px-4 py-3 text-right font-bold text-slate-500 uppercase tracking-widest text-[10px]">Price</th>
+                      <th className="px-6 py-4 text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Description</th>
+                      <th className="px-6 py-4 text-right text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-white/5">
                     {currentBill.service_items?.map((item, idx) => (
                       <tr key={`s-${idx}`}>
-                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">Service: {item.name}</td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-primary dark:text-white">₹{item.price}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Service: {item.name}</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{item.price}</td>
                       </tr>
                     ))}
                     {currentBill.parts_items?.map((item, idx) => (
                       <tr key={`p-${idx}`}>
-                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">Part: {item.name}</td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-primary dark:text-white">₹{item.price}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Part: {item.name}</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{item.price}</td>
                       </tr>
                     ))}
-                    {/* Handle manual amounts if items don't exist */}
                     {(!currentBill.service_items || currentBill.service_items.length === 0) && currentBill.service_amount > 0 && (
                       <tr>
-                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">Service Charges</td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-primary dark:text-white">₹{currentBill.service_amount}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Service Charges</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{currentBill.service_amount}</td>
                       </tr>
                     )}
                     {(!currentBill.parts_items || currentBill.parts_items.length === 0) && currentBill.parts_amount > 0 && (
                       <tr>
-                        <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">Spare Parts</td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-primary dark:text-white">₹{currentBill.parts_amount}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Spare Parts</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{currentBill.parts_amount}</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
 
-              <div className="bg-primary dark:bg-slate-950 text-white rounded-2xl p-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <div className="bg-white text-brand-black rounded-[2rem] p-8 shadow-2xl">
+                <div className="space-y-3">
+                  <div className="flex justify-between text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.2em] uppercase">
                     <span>Tax & Discounts</span>
-                    <span className="font-mono">
+                    <span className="font-mono uppercase">
                       GST({currentBill.gst_percent}%) : ₹{currentBill.gst_amount.toFixed(0)} | Disc: ₹{currentBill.discount.toFixed(0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center pt-2 border-t border-white/10">
-                    <span className="text-lg font-bold">Total Paid</span>
-                    <span className="text-3xl font-mono font-bold">₹{currentBill.total.toLocaleString('en-IN')}</span>
+                  <div className="flex justify-between items-center pt-4 border-t border-brand-black/5">
+                    <span className="text-xs font-display font-bold tracking-[0.3em] uppercase">Net Total</span>
+                    <span className="text-4xl font-mono font-bold tracking-tighter">₹{currentBill.total.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <div className="flex flex-col sm:flex-row gap-4 pt-4 relative z-10">
                 <button
                   onClick={handlePrint}
-                  className="btn-hover flex-1 bg-primary dark:bg-slate-800 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="btn-hover flex-1 bg-white/5 text-white py-5 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border border-white/5 transition-all uppercase"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
                   Print Invoice
                 </button>
-                <div className="flex-1 flex gap-3">
+                <div className="flex-1 flex gap-4">
                   <ShareButton bill={currentBill} />
                   <button
                     onClick={() => setShowBill(false)}
-                    className="flex-1 py-4 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all"
+                    className="flex-1 py-5 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] transition-all uppercase"
                   >
                     Close
                   </button>
@@ -679,6 +686,6 @@ export default function BillingPage() {
 
         {showToast && <Toast message={toastMessage} type={toastType} />}
       </main>
-    </>
+    </div>
   );
 }
