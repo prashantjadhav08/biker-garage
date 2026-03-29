@@ -683,25 +683,23 @@ export default function BillingPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 pt-4 relative z-10">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 relative z-10">
                 <button
                   onClick={handlePrint}
-                  className="btn-hover flex-1 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white py-5 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border border-slate-100 dark:border-white/5 transition-all uppercase"
+                  className="btn-hover bg-brand-accent text-white py-4 rounded-xl font-display font-bold text-[9px] tracking-[0.2em] flex items-center justify-center gap-2 shadow-neon transition-all uppercase"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
                   Print Invoice
                 </button>
-                <div className="flex-1 flex gap-4">
-                  <ShareButton bill={currentBill} />
-                  <button
-                    onClick={() => setShowBill(false)}
-                    className="flex-1 py-5 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] transition-all cursor-pointer uppercase"
-                  >
-                    Close
-                  </button>
-                </div>
+                <ShareButton bill={currentBill} />
+                <button
+                  onClick={() => setShowBill(false)}
+                  className="py-4 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-rose-500 border border-slate-200 dark:border-white/10 rounded-xl font-display font-bold text-[9px] tracking-[0.2em] transition-all cursor-pointer uppercase"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </Modal>

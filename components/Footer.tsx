@@ -46,8 +46,16 @@ export default function Footer() {
         </div>
 
         <div className="mt-20 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-8 gap-y-4">
             <span className="text-[9px] font-display font-bold tracking-[0.4em] opacity-40 uppercase">© {new Date().getFullYear()} CHAKRA SYSTEMS</span>
+            <a 
+              href="https://blackmorph.com/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[9px] font-display font-bold tracking-[0.2em] opacity-40 hover:opacity-100 transition-all uppercase group"
+            >
+              Developed by <span className="text-slate-900 dark:text-white group-hover:text-brand-accent transition-colors">Blackmorph Technologies</span>
+            </a>
             <div className="flex items-center gap-2">
               <div className={`w-1.5 h-1.5 rounded-full ${useSupabase ? 'bg-emerald-500 shadow-neon' : 'bg-amber-500'}`}></div>
               <span className="text-[9px] font-display font-bold tracking-[0.2em] opacity-40 uppercase">System Active</span>

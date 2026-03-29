@@ -257,30 +257,43 @@ export async function createBill(bill: Omit<Bill, 'id' | 'created_at' | 'bill_nu
 }
 
 export async function getBillById(id: string): Promise<Bill | null> {
-  // Use localStorage if Supabase is not configured
+  // ... (previous implementation)
+}
+
+export async function getReminders(): Promise<Bill[]> {
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  
+  // Define a window around 3 months (e.g., 3 months +/- 7 days)
+  const startWindow = new Date(threeMonthsAgo);
+  startWindow.setDate(startWindow.getDate() - 7);
+  const endWindow = new Date(threeMonthsAgo);
+  endWindow.setDate(endWindow.getDate() + 7);
+
   if (!isSupabaseConfigured()) {
     const bills = getBillsFromLocalStorage();
-    return bills.find(b => b.id === id) || null;
+    return bills.filter(b => {
+      const date = new Date(b.created_at);
+      return date >= startWindow && date <= endWindow;
+    }).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   try {
     const { data, error } = await supabase!
       .from('bills')
       .select('*')
-      .eq('id', id)
-      .single();
+      .gte('created_at', startWindow.toISOString())
+      .lte('created_at', endWindow.toISOString())
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Error fetching bill:', error);
-      // Fallback to localStorage
-      const bills = getBillsFromLocalStorage();
-      return bills.find(b => b.id === id) || null;
+      console.error('Error fetching reminders:', error);
+      return [];
     }
 
-    return data;
+    return data || [];
   } catch (error) {
-    console.error('Supabase error, falling back to localStorage:', error);
-    const bills = getBillsFromLocalStorage();
-    return bills.find(b => b.id === id) || null;
+    console.error('Supabase error fetching reminders:', error);
+    return [];
   }
 }
