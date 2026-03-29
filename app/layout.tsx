@@ -18,9 +18,11 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
       </head>
-      <body className="bg-slate-50 dark:bg-slate-900 min-h-screen transition-colors flex flex-col">
+      <body className="bg-brand-offwhite dark:bg-brand-black min-h-screen transition-colors flex flex-col antialiased">
         <ThemeProvider>
-          {children}
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
           <Footer />
         </ThemeProvider>
       </body>

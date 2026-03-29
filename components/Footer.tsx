@@ -10,7 +10,7 @@ export default function Footer() {
   const useSupabase = isSupabaseConfigured();
 
   return (
-    <footer className="bg-brand-black text-slate-400 py-16 mt-auto border-t border-white/5 relative overflow-hidden">
+    <footer className="bg-white dark:bg-brand-black text-slate-500 dark:text-slate-400 py-16 mt-auto border-t border-slate-200 dark:border-white/5 relative overflow-hidden transition-colors duration-500">
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-brand-accent/20 to-transparent"></div>
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -20,7 +20,7 @@ export default function Footer() {
               <svg className="w-8 h-8 text-brand-accent orange-glow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
               </svg>
-              <span className="font-display font-bold text-xl tracking-tighter text-white uppercase">CHAKRA</span>
+              <span className="font-display font-bold text-xl tracking-tighter text-slate-900 dark:text-white uppercase">CHAKRA</span>
             </div>
             <p className="text-[10px] font-display font-bold tracking-[0.2em] leading-relaxed uppercase opacity-60">
               Professional bike service management system. Streamlining operations with precision.
@@ -39,13 +39,13 @@ export default function Footer() {
                 </svg>
                 <span className="text-[10px] font-display font-bold tracking-[0.3em] uppercase">{item.label}</span>
               </div>
-              <p className="text-[11px] font-display font-bold text-white tracking-widest uppercase">{item.value}</p>
-              <p className="text-[9px] font-mono font-bold text-slate-600 mt-1 uppercase tracking-tighter">{item.sub}</p>
+              <p className="text-[11px] font-display font-bold text-slate-900 dark:text-white tracking-widest uppercase">{item.value}</p>
+              <p className="text-[9px] font-mono font-bold text-slate-500 dark:text-slate-600 mt-1 uppercase tracking-tighter">{item.sub}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="mt-20 pt-8 border-t border-slate-200 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-6">
             <span className="text-[9px] font-display font-bold tracking-[0.4em] opacity-40 uppercase">© {new Date().getFullYear()} CHAKRA SYSTEMS</span>
             <div className="flex items-center gap-2">
