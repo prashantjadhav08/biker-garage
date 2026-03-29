@@ -254,19 +254,19 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-celero">
+    <div className="min-h-screen bg-chakra">
       <Navigation onLogout={handleLogout} />
       <main className="max-w-7xl mx-auto px-6 py-12 flex-1 fade-up">
         <div className="mb-12">
           <span className="text-brand-accent font-display text-[10px] font-bold tracking-[0.4em] block mb-2 uppercase">Billing System</span>
-          <h1 className="text-5xl font-display font-bold text-white leading-none uppercase">CREATE <span className="text-gradient">INVOICE</span></h1>
+          <h1 className="text-5xl font-display font-bold text-slate-900 dark:text-white leading-none uppercase">CREATE <span className="text-gradient">INVOICE</span></h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column: Bike Selection */}
           <div className="space-y-8">
-            <div className="glass-panel rounded-[2.5rem] p-8 md:p-10">
-              <h3 className="text-xl font-display font-bold text-white mb-8 flex items-center gap-4 uppercase">
+            <div className="glass-panel rounded-[2.5rem] p-8 md:p-10 border border-slate-100 dark:border-white/5">
+              <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-4 uppercase">
                 <div className="bg-brand-accent/10 p-3 rounded-2xl">
                   <svg className="w-6 h-6 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -284,13 +284,13 @@ export default function BillingPage() {
                     name="bike_id"
                     value={formData.bike_id}
                     onChange={handleBikeSelect}
-                    className={`w-full p-5 bg-white/5 border rounded-[1.5rem] cursor-pointer focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-sm tracking-tight ${
-                      errors.bike_id ? 'border-rose-500' : 'border-white/5'
+                    className={`w-full p-5 bg-white dark:bg-white/5 border rounded-[1.5rem] cursor-pointer focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-sm tracking-tight text-slate-900 dark:text-white ${
+                      errors.bike_id ? 'border-rose-500' : 'border-slate-200 dark:border-white/5'
                     }`}
                   >
-                    <option value="" className="bg-brand-black">-- SELECT A BIKE --</option>
+                    <option value="" className="bg-white dark:bg-brand-black text-slate-900 dark:text-white">-- SELECT A BIKE --</option>
                     {bikes.map((bike) => (
-                      <option key={bike.id} value={bike.id} className="bg-brand-black">
+                      <option key={bike.id} value={bike.id} className="bg-white dark:bg-brand-black text-slate-900 dark:text-white">
                         {bike.bike_number} — {bike.bike_name}
                       </option>
                     ))}
@@ -299,7 +299,7 @@ export default function BillingPage() {
                 </div>
 
                 {selectedBike && (
-                  <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 fade-up relative overflow-hidden">
+                  <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[2rem] p-8 fade-up relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
                     <div className="grid grid-cols-2 gap-8 relative z-10">
                       <div>
@@ -308,15 +308,15 @@ export default function BillingPage() {
                       </div>
                       <div>
                         <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Bike Model</span>
-                        <p className="font-display font-bold text-white text-sm tracking-tight uppercase">{selectedBike.bike_name}</p>
+                        <p className="font-display font-bold text-slate-800 dark:text-white text-sm tracking-tight uppercase">{selectedBike.bike_name}</p>
                       </div>
                       <div>
                         <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Customer</span>
-                        <p className="font-display font-bold text-white text-sm tracking-tight uppercase">{selectedBike.customer_name}</p>
+                        <p className="font-display font-bold text-slate-800 dark:text-white text-sm tracking-tight uppercase">{selectedBike.customer_name}</p>
                       </div>
                       <div>
                         <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Mobile</span>
-                        <p className="font-display font-bold text-white text-sm tracking-tight">+91 {selectedBike.mobile}</p>
+                        <p className="font-display font-bold text-slate-800 dark:text-white text-sm tracking-tight">+91 {selectedBike.mobile}</p>
                       </div>
                     </div>
                   </div>
@@ -325,14 +325,14 @@ export default function BillingPage() {
             </div>
 
             {/* Catalog Section */}
-            <div className="glass-panel rounded-[2.5rem] overflow-hidden">
-              <div className="flex bg-white/5 p-1">
+            <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-white/5">
+              <div className="flex bg-slate-50 dark:bg-white/5 p-1">
                 <button
                   onClick={() => setActiveTab('services')}
                   className={`flex-1 py-4 text-[10px] font-display font-bold tracking-[0.3em] transition-all rounded-2xl uppercase ${
                     activeTab === 'services' 
                       ? 'bg-brand-accent text-white shadow-neon' 
-                      : 'text-slate-500 hover:text-white hover:bg-white/5'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-white/5'
                   }`}
                 >
                   Services
@@ -342,7 +342,7 @@ export default function BillingPage() {
                   className={`flex-1 py-4 text-[10px] font-display font-bold tracking-[0.3em] transition-all rounded-2xl uppercase ${
                     activeTab === 'parts' 
                       ? 'bg-brand-accent text-white shadow-neon' 
-                      : 'text-slate-500 hover:text-white hover:bg-white/5'
+                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-white/5'
                   }`}
                 >
                   Spare Parts
@@ -357,11 +357,11 @@ export default function BillingPage() {
                         key={idx}
                         type="button"
                         onClick={() => addService(service)}
-                        className="p-5 text-left bg-white/5 border border-white/5 rounded-2xl hover:border-brand-accent/30 hover:bg-brand-accent/5 transition-all group relative overflow-hidden"
+                        className="p-5 text-left bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl hover:border-brand-accent/30 hover:bg-brand-accent/5 transition-all group relative overflow-hidden cursor-pointer"
                       >
                         <div className="absolute top-0 right-0 w-16 h-16 bg-brand-accent/5 rounded-full -mr-8 -mt-8"></div>
-                        <p className="text-[11px] font-display font-bold text-slate-300 group-hover:text-brand-accent tracking-tighter mb-2 uppercase">{service.name}</p>
-                        <p className="text-sm font-mono font-bold text-white">₹{service.price}</p>
+                        <p className="text-[11px] font-display font-bold text-slate-600 dark:text-slate-300 group-hover:text-brand-accent tracking-tighter mb-2 uppercase">{service.name}</p>
+                        <p className="text-sm font-mono font-bold text-slate-900 dark:text-white">₹{service.price}</p>
                       </button>
                     ))}
                   </div>
@@ -372,11 +372,11 @@ export default function BillingPage() {
                         key={idx}
                         type="button"
                         onClick={() => addPart(part)}
-                        className="p-5 text-left bg-white/5 border border-white/5 rounded-2xl hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all group relative overflow-hidden"
+                        className="p-5 text-left bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all group relative overflow-hidden cursor-pointer"
                       >
                         <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full -mr-8 -mt-8"></div>
-                        <p className="text-[11px] font-display font-bold text-slate-300 group-hover:text-emerald-500 tracking-tighter mb-2 uppercase">{part.name}</p>
-                        <p className="text-sm font-mono font-bold text-white">₹{part.price}</p>
+                        <p className="text-[11px] font-display font-bold text-slate-600 dark:text-slate-300 group-hover:text-emerald-500 tracking-tighter mb-2 uppercase">{part.name}</p>
+                        <p className="text-sm font-mono font-bold text-slate-900 dark:text-white">₹{part.price}</p>
                       </button>
                     ))}
                   </div>
@@ -386,10 +386,10 @@ export default function BillingPage() {
           </div>
 
           {/* Right Column: Billing Details */}
-          <div className="glass-panel rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+          <div className="glass-panel rounded-[2.5rem] p-8 md:p-10 border border-slate-100 dark:border-white/5 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 rounded-full -mr-32 -mt-32 blur-[80px]"></div>
             
-            <h3 className="text-xl font-display font-bold text-white mb-8 flex items-center gap-4 relative z-10 uppercase">
+            <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-4 relative z-10 uppercase">
               <div className="bg-emerald-500/10 p-3 rounded-2xl">
                 <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
@@ -401,26 +401,26 @@ export default function BillingPage() {
             <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
               {/* Selected Items List */}
               {(selectedServices.length > 0 || selectedParts.length > 0) && (
-                <div className="bg-white/5 border border-white/5 rounded-[2rem] p-6 space-y-4">
+                <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[2rem] p-6 space-y-4">
                   <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.4em] px-2 mb-4 uppercase">Selected Items</h4>
                   <div className="space-y-3">
                     {selectedServices.map((s, idx) => (
-                      <div key={`s-${idx}`} className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5 fade-up">
-                        <span className="text-[11px] font-display font-bold text-slate-300 tracking-tight uppercase">{s.name}</span>
+                      <div key={`s-${idx}`} className="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5 fade-up">
+                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase">{s.name}</span>
                         <div className="flex items-center gap-4">
                           <span className="text-sm font-mono font-bold text-brand-accent">₹{s.price}</span>
-                          <button type="button" onClick={() => removeService(idx)} className="p-1.5 text-slate-500 hover:text-rose-500 transition-colors bg-white/5 rounded-lg">
+                          <button type="button" onClick={() => removeService(idx)} className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors bg-slate-50 dark:bg-white/5 rounded-lg cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
                         </div>
                       </div>
                     ))}
                     {selectedParts.map((p, idx) => (
-                      <div key={`p-${idx}`} className="flex items-center justify-between bg-white/5 p-4 rounded-xl border border-white/5 fade-up">
-                        <span className="text-[11px] font-display font-bold text-slate-300 tracking-tight uppercase">{p.name}</span>
+                      <div key={`p-${idx}`} className="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5 fade-up">
+                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase">{p.name}</span>
                         <div className="flex items-center gap-4">
-                          <span className="text-sm font-mono font-bold text-emerald-500">₹{p.price}</span>
-                          <button type="button" onClick={() => removePart(idx)} className="p-1.5 text-slate-500 hover:text-rose-500 transition-colors bg-white/5 rounded-lg">
+                          <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-500">₹{p.price}</span>
+                          <button type="button" onClick={() => removePart(idx)} className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors bg-slate-50 dark:bg-white/5 rounded-lg cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
                         </div>
@@ -440,8 +440,8 @@ export default function BillingPage() {
                   onChange={handleChange}
                   rows={3}
                   placeholder="Enter details of service work..."
-                  className={`w-full p-5 bg-white/5 border rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all resize-none text-white font-mono text-sm ${
-                    errors.service_desc ? 'border-rose-500' : 'border-white/5'
+                  className={`w-full p-5 bg-white dark:bg-white/5 border rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all resize-none text-slate-900 dark:text-white font-mono text-sm ${
+                    errors.service_desc ? 'border-rose-500' : 'border-slate-200 dark:border-white/5'
                   }`}
                 />
                 {errors.service_desc && <p className="text-rose-500 text-[10px] font-display font-bold tracking-widest mt-3 ml-2 uppercase">{errors.service_desc}</p>}
@@ -458,7 +458,7 @@ export default function BillingPage() {
                     value={formData.service_amount}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-white"
+                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-slate-900 dark:text-white"
                   />
                 </div>
                 <div className="group">
@@ -471,7 +471,7 @@ export default function BillingPage() {
                     value={formData.parts_amount}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-white"
+                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-slate-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -485,13 +485,13 @@ export default function BillingPage() {
                     name="gst_percent"
                     value={formData.gst_percent}
                     onChange={handleChange}
-                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none cursor-pointer transition-all text-white font-mono"
+                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none cursor-pointer transition-all text-slate-900 dark:text-white font-mono"
                   >
-                    <option value="0" className="bg-brand-black">0% — No Tax</option>
-                    <option value="5" className="bg-brand-black">5% — GST</option>
-                    <option value="12" className="bg-brand-black">12% — GST</option>
-                    <option value="18" className="bg-brand-black">18% — GST</option>
-                    <option value="28" className="bg-brand-black">28% — GST</option>
+                    <option value="0" className="bg-white dark:bg-brand-black">0% — No Tax</option>
+                    <option value="5" className="bg-white dark:bg-brand-black">5% — GST</option>
+                    <option value="12" className="bg-white dark:bg-brand-black">12% — GST</option>
+                    <option value="18" className="bg-white dark:bg-brand-black">18% — GST</option>
+                    <option value="28" className="bg-white dark:bg-brand-black">28% — GST</option>
                   </select>
                 </div>
                 <div className="group">
@@ -504,7 +504,7 @@ export default function BillingPage() {
                     value={formData.discount}
                     onChange={handleChange}
                     placeholder="0.00"
-                    className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-rose-500"
+                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-rose-600 dark:text-rose-500"
                   />
                 </div>
               </div>
@@ -524,7 +524,7 @@ export default function BillingPage() {
                     <span className="font-mono">₹{calculations.gst_amount.toLocaleString('en-IN')}</span>
                   </div>
                   {parseFloat(formData.discount) > 0 && (
-                    <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] text-black uppercase">
+                    <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] text-black dark:text-slate-900 uppercase">
                       <span>Discount</span>
                       <span className="font-mono">-₹{parseFloat(formData.discount).toLocaleString('en-IN')}</span>
                     </div>
@@ -546,7 +546,7 @@ export default function BillingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-white text-brand-black py-6 rounded-[2rem] font-display font-bold tracking-[0.2em] text-sm shadow-2xl kinetic-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transition-all uppercase"
+                className="w-full bg-slate-900 dark:bg-white text-white dark:text-brand-black py-6 rounded-[2rem] font-display font-bold tracking-[0.2em] text-sm shadow-2xl kinetic-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transition-all uppercase"
               >
                 {isSubmitting ? (
                   <>
@@ -577,83 +577,81 @@ export default function BillingPage() {
             title={`Invoice ${currentBill.bill_number}`}
             size="lg"
           >
-            <div className="space-y-8 bg-brand-black p-4 rounded-3xl border border-white/5">
-              <div className="text-center pb-10 border-b border-white/5 relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-brand-accent/10 blur-[60px] rounded-full"></div>
-                <div className="relative z-10">
-                  <div className="bg-brand-accent w-16 h-16 rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 shadow-neon">
-                    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-                    </svg>
-                  </div>
-                  <h2 className="text-3xl font-display font-bold text-white tracking-tighter uppercase">CHAKRA</h2>
-                  <p className="text-[10px] font-display font-bold text-brand-accent tracking-[0.5em] mt-2 uppercase">Service Bill</p>
-                  <div className="flex items-center justify-center gap-6 mt-8 text-[9px] font-display font-bold text-slate-500 uppercase tracking-widest">
-                    <span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Bill No: {currentBill.bill_number}</span>
-                    <span className="bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">Date: {formatDate(currentBill.created_at)}</span>
-                  </div>
+            <div className="space-y-8 bg-white dark:bg-brand-black p-4 rounded-3xl border border-slate-100 dark:border-white/5 relative overflow-hidden">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-brand-accent/10 blur-[60px] rounded-full"></div>
+              <div className="relative z-10">
+                <div className="bg-brand-accent w-16 h-16 rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 shadow-neon">
+                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                  </svg>
+                </div>
+                <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white tracking-tighter uppercase">CHAKRA</h2>
+                <p className="text-[10px] font-display font-bold text-brand-accent tracking-[0.5em] mt-2 uppercase">Service Bill</p>
+                <div className="flex items-center justify-center gap-6 mt-8 text-[9px] font-display font-bold text-slate-500 uppercase tracking-widest">
+                  <span className="bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5">Bill No: {currentBill.bill_number}</span>
+                  <span className="bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5">Date: {formatDate(currentBill.created_at)}</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-6 relative z-10">
-                <div className="bg-white/5 p-6 rounded-[1.5rem] border border-white/5">
+                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
                   <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Bike Info</h4>
-                  <p className="text-xs font-display font-bold text-white mb-1 uppercase uppercase">{currentBill.bike_name}</p>
+                  <p className="text-xs font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{currentBill.bike_name}</p>
                   <p className="font-mono font-bold text-brand-accent tracking-widest text-sm uppercase">{currentBill.bike_number}</p>
                 </div>
-                <div className="bg-white/5 p-6 rounded-[1.5rem] border border-white/5">
+                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
                   <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Customer</h4>
-                  <p className="text-xs font-display font-bold text-white mb-1 uppercase uppercase">{currentBill.customer_name}</p>
-                  <p className="font-mono font-bold text-slate-400 text-sm uppercase">+91 {currentBill.mobile}</p>
+                  <p className="text-xs font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{currentBill.customer_name}</p>
+                  <p className="font-mono font-bold text-slate-500 dark:text-slate-400 text-sm uppercase">+91 {currentBill.mobile}</p>
                 </div>
               </div>
 
-              <div className="border border-white/5 rounded-[2rem] overflow-hidden">
+              <div className="border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden">
                 <table className="w-full text-left">
-                  <thead className="bg-white/5 border-b border-white/5">
+                  <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
                     <tr>
                       <th className="px-6 py-4 text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Description</th>
                       <th className="px-6 py-4 text-right text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Amount</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5">
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                     {currentBill.service_items?.map((item, idx) => (
                       <tr key={`s-${idx}`}>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Service: {item.name}</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{item.price}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Service: {item.name}</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{item.price}</td>
                       </tr>
                     ))}
                     {currentBill.parts_items?.map((item, idx) => (
                       <tr key={`p-${idx}`}>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Part: {item.name}</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{item.price}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Part: {item.name}</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{item.price}</td>
                       </tr>
                     ))}
                     {(!currentBill.service_items || currentBill.service_items.length === 0) && currentBill.service_amount > 0 && (
                       <tr>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Service Charges</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{currentBill.service_amount}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Service Charges</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{currentBill.service_amount}</td>
                       </tr>
                     )}
                     {(!currentBill.parts_items || currentBill.parts_items.length === 0) && currentBill.parts_amount > 0 && (
                       <tr>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-300 uppercase">Spare Parts</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-white text-sm">₹{currentBill.parts_amount}</td>
+                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Spare Parts</td>
+                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{currentBill.parts_amount}</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
 
-              <div className="bg-white text-brand-black rounded-[2rem] p-8 shadow-2xl">
+              <div className="bg-slate-900 dark:bg-white text-white dark:text-brand-black rounded-[2rem] p-8 shadow-2xl">
                 <div className="space-y-3">
-                  <div className="flex justify-between text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.2em] uppercase">
+                  <div className="flex justify-between text-[9px] font-display font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] uppercase">
                     <span>Tax & Discounts</span>
                     <span className="font-mono uppercase">
                       GST({currentBill.gst_percent}%) : ₹{currentBill.gst_amount.toFixed(0)} | Disc: ₹{currentBill.discount.toFixed(0)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center pt-4 border-t border-brand-black/5">
+                  <div className="flex justify-between items-center pt-4 border-t border-white/10 dark:border-brand-black/5">
                     <span className="text-xs font-display font-bold tracking-[0.3em] uppercase">Net Total</span>
                     <span className="text-4xl font-mono font-bold tracking-tighter">₹{currentBill.total.toLocaleString('en-IN')}</span>
                   </div>
@@ -663,7 +661,7 @@ export default function BillingPage() {
               <div className="flex flex-col sm:flex-row gap-4 pt-4 relative z-10">
                 <button
                   onClick={handlePrint}
-                  className="btn-hover flex-1 bg-white/5 text-white py-5 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border border-white/5 transition-all uppercase"
+                  className="btn-hover flex-1 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white py-5 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border border-slate-100 dark:border-white/5 transition-all uppercase"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -674,7 +672,7 @@ export default function BillingPage() {
                   <ShareButton bill={currentBill} />
                   <button
                     onClick={() => setShowBill(false)}
-                    className="flex-1 py-5 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] transition-all uppercase"
+                    className="flex-1 py-5 bg-rose-500/10 text-rose-600 dark:text-rose-500 border border-rose-500/20 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] transition-all uppercase"
                   >
                     Close
                   </button>

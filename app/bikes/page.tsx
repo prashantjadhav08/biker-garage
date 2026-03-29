@@ -121,13 +121,13 @@ export default function BikesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-celero">
+    <div className="min-h-screen bg-chakra">
       <Navigation onLogout={handleLogout} />
       <main className="max-w-7xl mx-auto px-6 py-12 flex-1 fade-up">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div>
             <span className="text-brand-accent font-display text-[10px] font-bold tracking-[0.4em] block mb-2 uppercase">Vehicle Inventory</span>
-            <h1 className="text-5xl font-display font-bold text-white leading-none uppercase">BIKE <span className="text-gradient">MANAGEMENT</span></h1>
+            <h1 className="text-5xl font-display font-bold text-slate-900 dark:text-white leading-none uppercase">BIKE <span className="text-gradient">MANAGEMENT</span></h1>
           </div>
           <button
             onClick={() => setShowForm(true)}
@@ -141,7 +141,7 @@ export default function BikesPage() {
         </div>
 
         <div className="mb-12 relative group">
-          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-accent transition-colors">
+          <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-accent transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -151,7 +151,7 @@ export default function BikesPage() {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="SEARCH BY NUMBER, MODEL, OR CUSTOMER..."
-            className="w-full pl-16 pr-8 py-6 bg-white/5 border border-white/5 rounded-[2rem] text-white font-display text-xs tracking-widest focus:ring-brand-accent/10 focus:ring-8 outline-none transition-all placeholder:text-slate-700"
+            className="w-full pl-16 pr-8 py-6 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-[2rem] text-slate-900 dark:text-white font-display text-xs tracking-widest focus:ring-brand-accent/10 focus:ring-8 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-700"
           />
         </div>
 
@@ -164,7 +164,7 @@ export default function BikesPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h3 className="text-2xl font-display font-bold text-white mb-4 tracking-tighter uppercase">
+              <h3 className="text-2xl font-display font-bold text-slate-900 dark:text-white mb-4 tracking-tighter uppercase">
                 {searchTerm ? 'No results found' : 'No bikes found'}
               </h3>
               <p className="text-slate-500 font-display text-[10px] tracking-[0.2em] max-w-xs mx-auto uppercase">

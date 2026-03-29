@@ -86,7 +86,7 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
       title={bike ? 'Edit Bike' : 'Register New Bike'}
       size="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-6 bg-brand-black p-2">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white dark:bg-brand-black p-2">
         <div className="group">
           <label className="block text-[9px] font-display font-bold text-slate-500 tracking-[0.3em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
             Bike Number
@@ -98,7 +98,7 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
             onChange={handleChange}
             required
             placeholder="e.g. MH12AB1234"
-            className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-white font-mono text-sm tracking-[0.2em] focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all uppercase placeholder:text-slate-800"
+            className="w-full p-5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white font-mono text-sm tracking-[0.2em] focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all uppercase placeholder:text-slate-400 dark:placeholder:text-slate-800"
           />
         </div>
 
@@ -118,24 +118,24 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
             }}
             required
             placeholder="Search or enter model..."
-            className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-white font-display text-xs tracking-widest focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-800"
+            className="w-full p-5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white font-display text-xs tracking-widest focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-800"
             autoComplete="off"
           />
           
           {showSuggestions && (
             <div
               ref={suggestionsRef}
-              className="absolute z-50 w-full mt-3 bg-brand-black border border-white/10 rounded-[1.5rem] shadow-2xl max-h-64 overflow-y-auto fade-up backdrop-blur-xl"
+              className="absolute z-50 w-full mt-3 bg-white dark:bg-brand-black border border-slate-200 dark:border-white/10 rounded-[1.5rem] shadow-2xl max-h-64 overflow-y-auto fade-up backdrop-blur-xl"
             >
-              <div className="p-4 bg-white/5 border-b border-white/5">
-                <span className="text-[8px] font-display font-bold text-slate-500 tracking-widest uppercase">Popular Models</span>
+              <div className="p-4 bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
+                <span className="text-[8px] font-display font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase">Popular Models</span>
               </div>
               {suggestions.map((suggestion, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="w-full text-left px-6 py-4 hover:bg-brand-accent/10 text-slate-300 hover:text-brand-accent cursor-pointer transition-all flex items-center gap-4 font-display text-[10px] tracking-tight border-b border-white/5 last:border-0"
+                  className="w-full text-left px-6 py-4 hover:bg-brand-accent/10 text-slate-700 dark:text-slate-300 hover:text-brand-accent cursor-pointer transition-all flex items-center gap-4 font-display text-[10px] tracking-tight border-b border-slate-100 dark:border-white/5 last:border-0"
                 >
                   <div className="w-1 h-1 bg-brand-accent rounded-full"></div>
                   {suggestion}
@@ -156,7 +156,7 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
             onChange={handleChange}
             required
             placeholder="Enter customer name..."
-            className="w-full p-5 bg-white/5 border border-white/5 rounded-2xl text-white font-display text-xs tracking-widest focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-800 uppercase"
+            className="w-full p-5 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white font-display text-xs tracking-widest focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-800 uppercase"
           />
         </div>
 
@@ -165,7 +165,7 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
             Mobile Number
           </label>
           <div className="relative">
-            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 font-mono text-sm">+91</span>
+            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-600 font-mono text-sm">+91</span>
             <input
               type="tel"
               name="mobile"
@@ -173,7 +173,7 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
               onChange={handleChange}
               required
               placeholder="0000000000"
-              className="w-full p-5 pl-16 bg-white/5 border border-white/5 rounded-2xl text-white font-mono text-sm tracking-[0.2em] focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-800"
+              className="w-full p-5 pl-16 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl text-slate-900 dark:text-white font-mono text-sm tracking-[0.2em] focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all placeholder:text-slate-400 dark:placeholder:text-slate-800"
               maxLength={10}
               pattern="[0-9]{10}"
             />
@@ -184,7 +184,7 @@ export default function BikeForm({ bike, onSave, onClose }: BikeFormProps) {
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 py-5 bg-white/5 text-slate-500 border border-white/5 rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] hover:text-white hover:bg-white/10 transition-all cursor-pointer uppercase"
+            className="flex-1 py-5 bg-slate-50 dark:bg-white/5 text-slate-500 border border-slate-100 dark:border-white/5 rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer uppercase"
           >
             Cancel
           </button>

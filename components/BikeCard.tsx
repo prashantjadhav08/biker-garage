@@ -41,42 +41,42 @@ export default function BikeCard({ bike, onEdit, onDelete }: BikeCardProps) {
       </div>
 
       <div className="relative z-10">
-        <h3 className="font-display font-bold text-white text-2xl mb-6 tracking-tight group-hover:text-brand-accent transition-colors duration-500 uppercase">
+        <h3 className="font-display font-bold text-slate-900 dark:text-white text-2xl mb-6 tracking-tight group-hover:text-brand-accent transition-colors duration-500 uppercase">
           {bike.bike_name}
         </h3>
 
         <div className="space-y-4">
           <div className="flex items-center gap-4 group/item">
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5 group-hover/item:border-brand-accent/20 transition-all">
-              <svg className="w-4 h-4 text-slate-500 group-hover/item:text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center border border-slate-100 dark:border-white/5 group-hover/item:border-brand-accent/20 transition-all">
+              <svg className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover/item:text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
             <div>
-              <p className="text-[9px] font-display font-bold text-slate-600 uppercase tracking-widest leading-none mb-1">Customer</p>
-              <p className="font-display font-bold text-slate-300 text-[11px] tracking-tight uppercase">{bike.customer_name}</p>
+              <p className="text-[9px] font-display font-bold text-slate-500 dark:text-slate-600 uppercase tracking-widest leading-none mb-1">Customer</p>
+              <p className="font-display font-bold text-slate-700 dark:text-slate-300 text-[11px] tracking-tight uppercase">{bike.customer_name}</p>
             </div>
           </div>
           
           <div className="flex items-center gap-4 group/item">
-            <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5 group-hover/item:border-brand-accent/20 transition-all">
-              <svg className="w-4 h-4 text-slate-500 group-hover/item:text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center border border-slate-100 dark:border-white/5 group-hover/item:border-brand-accent/20 transition-all">
+              <svg className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover/item:text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
             </div>
             <div>
-              <p className="text-[9px] font-display font-bold text-slate-600 uppercase tracking-widest leading-none mb-1">Mobile</p>
-              <p className="font-mono font-bold text-slate-300 text-[11px] tracking-tight">+91 {bike.mobile}</p>
+              <p className="text-[9px] font-display font-bold text-slate-500 dark:text-slate-600 uppercase tracking-widest leading-none mb-1">Mobile</p>
+              <p className="font-mono font-bold text-slate-700 dark:text-slate-300 text-[11px] tracking-tight">+91 {bike.mobile}</p>
             </div>
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-slate-600 text-[9px] font-display font-bold tracking-[0.2em]">
+        <div className="mt-10 pt-6 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-600 text-[9px] font-display font-bold tracking-[0.2em]">
             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
             ACTIVE
           </div>
-          <span className="text-[9px] font-display font-bold text-slate-700 tracking-[0.3em] uppercase">Verified</span>
+          <span className="text-[9px] font-display font-bold text-slate-400 dark:text-slate-700 tracking-[0.3em] uppercase">Verified</span>
         </div>
       </div>
     </div>
