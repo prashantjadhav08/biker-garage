@@ -257,31 +257,21 @@ export default function HistoryPage() {
           <Modal
             isOpen={showModal}
             onClose={() => setShowModal(false)}
-            title={`BILL ID: ${selectedBill.bill_number}`}
+            title="Service Record"
             size="lg"
           >
-            <div className="space-y-8 bg-white dark:bg-brand-black p-4 rounded-[2rem] border border-slate-100 dark:border-white/5 relative overflow-hidden">
+            <div className="space-y-8 relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 blur-[80px] rounded-full -mr-32 -mt-32"></div>
               
-              <div className="text-center pb-10 border-b border-slate-100 dark:border-white/5 relative z-10">
-                <div className="bg-brand-accent w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-neon">
-                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-                  </svg>
-                </div>
-                <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white tracking-tighter uppercase">CHAKRA</h2>
-                <p className="text-[10px] font-display font-bold text-brand-accent tracking-[0.5em] mt-2 uppercase">Service Record</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6 relative z-10">
-                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/5">
-                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Bike Info</h4>
-                  <p className="text-[11px] font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{selectedBill.bike_name || 'N/A'}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
+                  <h4 className="text-[10px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4">Bike Info</h4>
+                  <p className="text-sm font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{selectedBill.bike_name || 'N/A'}</p>
                   <p className="font-mono font-bold text-brand-accent text-sm tracking-widest uppercase">{selectedBill.bike_number || 'N/A'}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/5">
-                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Customer</h4>
-                  <p className="text-[11px] font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{selectedBill.customer_name || 'N/A'}</p>
+                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
+                  <h4 className="text-[10px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4">Customer</h4>
+                  <p className="text-sm font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{selectedBill.customer_name || 'N/A'}</p>
                   <p className="font-mono font-bold text-slate-500 dark:text-slate-400 text-sm tracking-tight uppercase">+91 {selectedBill.mobile || 'N/A'}</p>
                 </div>
               </div>
@@ -290,44 +280,45 @@ export default function HistoryPage() {
                 <table className="w-full text-left">
                   <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
                     <tr>
-                      <th className="px-6 py-4 text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Service Details</th>
-                      <th className="px-6 py-4 text-right text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Amount</th>
+                      <th className="px-6 py-4 text-[10px] font-display font-bold text-slate-500 uppercase tracking-[0.3em]">Service Details</th>
+                      <th className="px-6 py-4 text-right text-[10px] font-display font-bold text-slate-500 uppercase tracking-[0.3em]">Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                     <tr>
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-5">
                         <p className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Service Protocol</p>
-                        <p className="text-[9px] font-mono text-slate-500 mt-1 uppercase">{selectedBill.service_desc}</p>
+                        <p className="text-[10px] font-mono text-slate-500 mt-1 uppercase leading-relaxed">{selectedBill.service_desc}</p>
                       </td>
-                      <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm uppercase">₹{(selectedBill.service_amount || 0).toLocaleString('en-IN')}</td>
+                      <td className="px-6 py-5 text-right font-mono font-bold text-slate-900 dark:text-white text-base uppercase">₹{(selectedBill.service_amount || 0).toLocaleString('en-IN')}</td>
                     </tr>
                     {(selectedBill.parts_amount || 0) > 0 && (
                       <tr>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Hardware Replacement</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm uppercase">₹{(selectedBill.parts_amount || 0).toLocaleString('en-IN')}</td>
+                        <td className="px-6 py-5 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Hardware Replacement</td>
+                        <td className="px-6 py-5 text-right font-mono font-bold text-slate-900 dark:text-white text-base uppercase">₹{(selectedBill.parts_amount || 0).toLocaleString('en-IN')}</td>
                       </tr>
                     )}
                     {(selectedBill.gst_amount || 0) > 0 && (
                       <tr>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-500 uppercase">GST Allocation ({selectedBill.gst_percent || 18}%)</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-500 text-sm uppercase">₹{(selectedBill.gst_amount || 0).toLocaleString('en-IN')}</td>
+                        <td className="px-6 py-5 text-[11px] font-display font-bold text-slate-500 uppercase">GST Allocation ({selectedBill.gst_percent || 18}%)</td>
+                        <td className="px-6 py-5 text-right font-mono font-bold text-slate-500 text-base uppercase">₹{(selectedBill.gst_amount || 0).toLocaleString('en-IN')}</td>
                       </tr>
                     )}
                     {(selectedBill.discount || 0) > 0 && (
                       <tr>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-rose-600 dark:text-rose-500 uppercase">Applied Discount</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-rose-600 dark:text-rose-500 text-sm uppercase">-₹{(selectedBill.discount || 0).toLocaleString('en-IN')}</td>
+                        <td className="px-6 py-5 text-[11px] font-display font-bold text-rose-600 dark:text-rose-500 uppercase">Applied Discount</td>
+                        <td className="px-6 py-5 text-right font-mono font-bold text-rose-600 dark:text-rose-500 text-base uppercase">-₹{(selectedBill.discount || 0).toLocaleString('en-IN')}</td>
                       </tr>
                     )}
                   </tbody>
                 </table>
               </div>
 
-              <div className="bg-slate-900 dark:bg-white text-white dark:text-brand-black rounded-2xl p-8 relative z-10 shadow-2xl">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-display font-bold tracking-[0.3em] uppercase">Net Total Paid</span>
-                  <span className="text-4xl font-mono font-bold tracking-tighter uppercase">
+              <div className="bg-slate-900 dark:bg-brand-black text-white rounded-[1.5rem] p-8 relative z-10 shadow-2xl border border-white/5 overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+                <div className="flex justify-between items-center relative z-10">
+                  <span className="text-xs font-display font-bold tracking-[0.4em] uppercase opacity-60">Net Total Paid</span>
+                  <span className="text-4xl font-mono font-bold tracking-tighter uppercase text-brand-accent">
                     ₹{(selectedBill.total || 0).toLocaleString('en-IN')}
                   </span>
                 </div>
@@ -336,7 +327,7 @@ export default function HistoryPage() {
               <div className="flex flex-col sm:flex-row gap-4 pt-4 relative z-10">
                 <button
                   onClick={handlePrint}
-                  className="btn-hover flex-1 bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white py-5 rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 border border-slate-100 dark:border-white/5 transition-all uppercase"
+                  className="btn-hover flex-[1.5] bg-brand-accent text-white py-5 rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] flex items-center justify-center gap-3 shadow-neon transition-all uppercase"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -347,7 +338,7 @@ export default function HistoryPage() {
                   <ShareButton bill={selectedBill} />
                   <button
                     onClick={() => setShowModal(false)}
-                    className="flex-1 py-5 bg-rose-500/10 text-rose-600 dark:text-rose-500 border border-rose-500/20 rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] transition-all uppercase"
+                    className="flex-1 py-5 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-rose-500 border border-slate-200 dark:border-white/10 rounded-2xl font-display font-bold text-[10px] tracking-[0.2em] transition-all cursor-pointer uppercase"
                   >
                     Close
                   </button>

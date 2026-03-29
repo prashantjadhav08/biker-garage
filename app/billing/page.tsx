@@ -150,6 +150,28 @@ export default function BillingPage() {
     updateServiceDesc(selectedParts, newServices);
   };
 
+  const handleServicePriceChange = (index: number, value: string) => {
+    const newPrice = Math.max(0, parseFloat(value) || 0);
+    const updatedServices = [...selectedServices];
+    const oldPrice = updatedServices[index].price;
+    updatedServices[index].price = newPrice;
+    
+    const currentTotal = parseFloat(formData.service_amount) || 0;
+    setFormData(prev => ({ ...prev, service_amount: String(currentTotal - oldPrice + newPrice) }));
+    setSelectedServices(updatedServices);
+  };
+
+  const handlePartPriceChange = (index: number, value: string) => {
+    const newPrice = Math.max(0, parseFloat(value) || 0);
+    const updatedParts = [...selectedParts];
+    const oldPrice = updatedParts[index].price;
+    updatedParts[index].price = newPrice;
+    
+    const currentTotal = parseFloat(formData.parts_amount) || 0;
+    setFormData(prev => ({ ...prev, parts_amount: String(currentTotal - oldPrice + newPrice) }));
+    setSelectedParts(updatedParts);
+  };
+
   const getSelectedItemsDesc = () => {
     return formData.service_desc.trim() || 'Service';
   };
@@ -406,9 +428,17 @@ export default function BillingPage() {
                   <div className="space-y-3">
                     {selectedServices.map((s, idx) => (
                       <div key={`s-${idx}`} className="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5 fade-up">
-                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase">{s.name}</span>
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm font-mono font-bold text-brand-accent">₹{s.price}</span>
+                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase flex-1 mr-4">{s.name}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center bg-slate-50 dark:bg-black/20 rounded-lg px-2 border border-slate-200 dark:border-white/10 focus-within:border-brand-accent transition-all">
+                            <span className="text-[10px] font-mono font-bold text-brand-accent/60">₹</span>
+                            <input 
+                              type="number" 
+                              value={s.price}
+                              onChange={(e) => handleServicePriceChange(idx, e.target.value)}
+                              className="w-16 bg-transparent border-none outline-none text-xs font-mono font-bold text-brand-accent p-1 text-right appearance-none"
+                            />
+                          </div>
                           <button type="button" onClick={() => removeService(idx)} className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors bg-slate-50 dark:bg-white/5 rounded-lg cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
@@ -417,9 +447,17 @@ export default function BillingPage() {
                     ))}
                     {selectedParts.map((p, idx) => (
                       <div key={`p-${idx}`} className="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5 fade-up">
-                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase">{p.name}</span>
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm font-mono font-bold text-emerald-600 dark:text-emerald-500">₹{p.price}</span>
+                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase flex-1 mr-4">{p.name}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center bg-slate-50 dark:bg-black/20 rounded-lg px-2 border border-slate-200 dark:border-white/10 focus-within:border-emerald-500 transition-all">
+                            <span className="text-[10px] font-mono font-bold text-emerald-600/60 dark:text-emerald-500/60">₹</span>
+                            <input 
+                              type="number" 
+                              value={p.price}
+                              onChange={(e) => handlePartPriceChange(idx, e.target.value)}
+                              className="w-16 bg-transparent border-none outline-none text-xs font-mono font-bold text-emerald-600 dark:text-emerald-500 p-1 text-right appearance-none"
+                            />
+                          </div>
                           <button type="button" onClick={() => removePart(idx)} className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors bg-slate-50 dark:bg-white/5 rounded-lg cursor-pointer">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                           </button>
@@ -574,26 +612,13 @@ export default function BillingPage() {
           <Modal
             isOpen={showBill}
             onClose={() => setShowBill(false)}
-            title={`Invoice ${currentBill.bill_number}`}
+            title="Service Invoice"
             size="lg"
           >
-            <div className="space-y-8 bg-white dark:bg-brand-black p-4 rounded-3xl border border-slate-100 dark:border-white/5 relative overflow-hidden">
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-brand-accent/10 blur-[60px] rounded-full"></div>
-              <div className="relative z-10">
-                <div className="bg-brand-accent w-16 h-16 rounded-[1.25rem] flex items-center justify-center mx-auto mb-6 shadow-neon">
-                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
-                  </svg>
-                </div>
-                <h2 className="text-3xl font-display font-bold text-slate-900 dark:text-white tracking-tighter uppercase">CHAKRA</h2>
-                <p className="text-[10px] font-display font-bold text-brand-accent tracking-[0.5em] mt-2 uppercase">Service Bill</p>
-                <div className="flex items-center justify-center gap-6 mt-8 text-[9px] font-display font-bold text-slate-500 uppercase tracking-widest">
-                  <span className="bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5">Bill No: {currentBill.bill_number}</span>
-                  <span className="bg-slate-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-white/5">Date: {formatDate(currentBill.created_at)}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-6 relative z-10">
+            <div className="space-y-8 relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 blur-[80px] rounded-full -mr-32 -mt-32"></div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
                 <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
                   <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Bike Info</h4>
                   <p className="text-xs font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{currentBill.bike_name}</p>
@@ -606,7 +631,7 @@ export default function BillingPage() {
                 </div>
               </div>
 
-              <div className="border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden">
+              <div className="border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden relative z-10">
                 <table className="w-full text-left">
                   <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
                     <tr>
@@ -643,7 +668,7 @@ export default function BillingPage() {
                 </table>
               </div>
 
-              <div className="bg-slate-900 dark:bg-white text-white dark:text-brand-black rounded-[2rem] p-8 shadow-2xl">
+              <div className="bg-slate-900 dark:bg-white text-white dark:text-brand-black rounded-[2rem] p-8 shadow-2xl relative z-10">
                 <div className="space-y-3">
                   <div className="flex justify-between text-[9px] font-display font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] uppercase">
                     <span>Tax & Discounts</span>
@@ -672,7 +697,7 @@ export default function BillingPage() {
                   <ShareButton bill={currentBill} />
                   <button
                     onClick={() => setShowBill(false)}
-                    className="flex-1 py-5 bg-rose-500/10 text-rose-600 dark:text-rose-500 border border-rose-500/20 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] transition-all uppercase"
+                    className="flex-1 py-5 bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 rounded-[1.5rem] font-display font-bold text-[10px] tracking-[0.2em] transition-all cursor-pointer uppercase"
                   >
                     Close
                   </button>
