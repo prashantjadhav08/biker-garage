@@ -1,58 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-function migrateAndGetBills() {
-  if (typeof window !== 'undefined') {
-    const oldKey = 'biker_garage_bills';
-    const newKey = 'chakra_bills';
-    const oldData = localStorage.getItem(oldKey);
-    const newData = localStorage.getItem(newKey);
-    if (oldData && !newData) {
-      localStorage.setItem(newKey, oldData);
-      localStorage.removeItem(oldKey);
-      return JSON.parse(oldData);
-    }
-    return newData ? JSON.parse(newData) : [];
-  }
-  return [];
-}
-
-function getBills() {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('chakra_bills');
-    return stored ? JSON.parse(stored) : [];
-  }
-  return [];
-}
-
-function saveBills(bills: any[]) {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('chakra_bills', JSON.stringify(bills));
-  }
-}
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
-    const days = searchParams.get('days') || '7';
+    const days = searchParams.get('days');
     const id = searchParams.get('id');
 
-    const bills = migrateAndGetBills();
-
     if (id) {
-      const bill = bills.find((b: any) => b.id === id);
-      if (!bill) {
+      const { data, error } = await supabase!
+        .from('bills')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
         return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
       }
-      return NextResponse.json(bill);
+      return NextResponse.json(data);
     }
 
-    const daysAgo = new Date();
-    daysAgo.setDate(daysAgo.getDate() - parseInt(days));
+    let query = supabase!
+      .from('bills')
+      .select('*');
 
-    const filtered = bills.filter((b: any) => new Date(b.created_at) >= daysAgo);
-    const sorted = filtered.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    if (days) {
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - parseInt(days));
+      query = query.gte('created_at', daysAgo.toISOString());
+    }
 
-    return NextResponse.json(sorted);
+    const { data, error } = await query.order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching bills:', error);
+      return NextResponse.json({ error: 'Failed to fetch bills' }, { status: 500 });
+    }
+
+    return NextResponse.json(data || []);
   } catch (error) {
     console.error('Error fetching bills:', error);
     return NextResponse.json({ error: 'Failed to fetch bills' }, { status: 500 });
@@ -60,6 +49,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
+  }
+
   try {
     const body = await request.json();
     const {
@@ -69,6 +62,8 @@ export async function POST(request: NextRequest) {
       customer_name,
       mobile,
       service_desc,
+      service_items,
+      parts_items,
       service_amount,
       parts_amount,
       gst_percent,
@@ -86,7 +81,7 @@ export async function POST(request: NextRequest) {
 
     const subtotal = serviceAmt + partsAmt;
     const gst_amount = subtotal * (gstPct / 100);
-    const total = subtotal + gst_amount - discountAmt;
+    const total = Math.max(0, subtotal + gst_amount - discountAmt);
 
     const bill_number = `CK${Date.now().toString().slice(-6)}`;
 
@@ -99,6 +94,8 @@ export async function POST(request: NextRequest) {
       customer_name: customer_name || '',
       mobile: mobile || '',
       service_desc,
+      service_items: service_items || [],
+      parts_items: parts_items || [],
       service_amount: serviceAmt,
       parts_amount: partsAmt,
       gst_percent: gstPct,
@@ -108,11 +105,18 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString(),
     };
 
-    const bills = getBills();
-    const updatedBills = [newBill, ...bills];
-    saveBills(updatedBills);
+    const { data, error } = await supabase!
+      .from('bills')
+      .insert(newBill)
+      .select()
+      .single();
 
-    return NextResponse.json(newBill, { status: 201 });
+    if (error) {
+      console.error('Error creating bill:', error);
+      return NextResponse.json({ error: 'Failed to create bill' }, { status: 500 });
+    }
+
+    return NextResponse.json(data, { status: 201 });
   } catch (error) {
     console.error('Error creating bill:', error);
     return NextResponse.json({ error: 'Failed to create bill' }, { status: 500 });

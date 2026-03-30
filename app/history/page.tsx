@@ -38,7 +38,7 @@ export default function HistoryPage() {
 
   const fetchData = async () => {
     try {
-      const data = await getBills(7);
+      const data = await getBills();
       setBills(data);
       setFilteredBills(data);
     } catch (error) {

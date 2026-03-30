@@ -173,38 +173,51 @@ export async function deleteBike(id: string): Promise<void> {
 
 // ==================== BILLS ====================
 
-export async function getBills(days: number = 7): Promise<Bill[]> {
+export async function getBills(days?: number): Promise<Bill[]> {
+  const filterByDate = typeof days === 'number' && days > 0;
   const daysAgo = new Date();
-  daysAgo.setDate(daysAgo.getDate() - days);
+  if (filterByDate) {
+    daysAgo.setDate(daysAgo.getDate() - days);
+  }
 
   // Use localStorage if Supabase is not configured
   if (!isSupabaseConfigured()) {
     const bills = getBillsFromLocalStorage();
-    return bills.filter(b => new Date(b.created_at) >= daysAgo)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const filtered = filterByDate
+      ? bills.filter(b => new Date(b.created_at) >= daysAgo)
+      : bills;
+    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 
   try {
-    const { data, error } = await supabase!
+    let query = supabase!
       .from('bills')
-      .select('*')
-      .gte('created_at', daysAgo.toISOString())
-      .order('created_at', { ascending: false });
+      .select('*');
+
+    if (filterByDate) {
+      query = query.gte('created_at', daysAgo.toISOString());
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching bills:', error);
       // Fallback to localStorage
       const bills = getBillsFromLocalStorage();
-      return bills.filter(b => new Date(b.created_at) >= daysAgo)
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const filtered = filterByDate
+        ? bills.filter(b => new Date(b.created_at) >= daysAgo)
+        : bills;
+      return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
 
     return data || [];
   } catch (error) {
     console.error('Supabase error, falling back to localStorage:', error);
     const bills = getBillsFromLocalStorage();
-    return bills.filter(b => new Date(b.created_at) >= daysAgo)
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    const filtered = filterByDate
+      ? bills.filter(b => new Date(b.created_at) >= daysAgo)
+      : bills;
+    return filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }
 }
 
@@ -257,7 +270,30 @@ export async function createBill(bill: Omit<Bill, 'id' | 'created_at' | 'bill_nu
 }
 
 export async function getBillById(id: string): Promise<Bill | null> {
-  // ... (previous implementation)
+  if (!isSupabaseConfigured()) {
+    const bills = getBillsFromLocalStorage();
+    return bills.find(b => b.id === id) || null;
+  }
+
+  try {
+    const { data, error } = await supabase!
+      .from('bills')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching bill by id:', error);
+      const bills = getBillsFromLocalStorage();
+      return bills.find(b => b.id === id) || null;
+    }
+
+    return data || null;
+  } catch (error) {
+    console.error('Supabase error, falling back to localStorage:', error);
+    const bills = getBillsFromLocalStorage();
+    return bills.find(b => b.id === id) || null;
+  }
 }
 
 export async function getReminders(): Promise<Bill[]> {
