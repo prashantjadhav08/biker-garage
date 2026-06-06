@@ -1,25 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdmin } from '@/lib/auth-server';
 
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'Admin@123';
+// Helper to add CORS headers to any response
+function corsResponse(body: any, status: number = 200) {
+  const response = NextResponse.json(body, { status });
+  response.headers.set('Access-Control-Allow-Origin', '*');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  return response;
+}
+
+export async function OPTIONS() {
+  return corsResponse({}, 200);
+}
 
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
+    console.log('[AUTH] Login attempt:', username);
 
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      return NextResponse.json({ success: true, message: 'Login successful' });
+    const result = verifyAdmin(username, password);
+    console.log('[AUTH] Result:', result.success ? 'success' : 'failed');
+
+    if (result.success) {
+      return corsResponse({
+        success: true,
+        message: 'Login successful',
+        token: result.token,
+        role: result.role,
+      });
     }
 
-    return NextResponse.json(
-      { success: false, message: 'Invalid credentials' },
-      { status: 401 }
+    return corsResponse(
+      { success: false, message: result.error || 'Invalid credentials' },
+      401
     );
   } catch (error) {
-    console.error('Auth error:', error);
-    return NextResponse.json(
+    console.error('[AUTH] Error:', error);
+    return corsResponse(
       { success: false, message: 'An error occurred' },
-      { status: 500 }
+      500
     );
   }
 }

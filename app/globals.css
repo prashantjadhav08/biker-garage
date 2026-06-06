@@ -2,121 +2,109 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
-
-* {
-  box-sizing: border-box;
-}
-
-:root {
-  --shadow-soft: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-}
-
-body {
-  font-family: 'Fira Sans', sans-serif;
-  min-height: 100vh;
-}
-
-.font-mono {
-  font-family: 'Fira Code', monospace;
-}
-
-.fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
+@layer base {
+  :root {
+    color-scheme: dark;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  body {
+    @apply bg-app-bg text-slate-50 antialiased;
+    font-family: var(--font-inter), system-ui, sans-serif;
   }
-}
 
-.btn-hover {
-  transition: all 0.2s ease;
-}
+  /* Force dark mode always — no light mode per design system */
+  /* html.dark is set in layout.tsx */
 
-.btn-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.card-hover {
-  transition: all 0.2s ease;
-}
-
-.card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-}
-
-.toast-enter {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
+  input, select, textarea {
+    @apply bg-app-bg text-slate-50;
   }
-  to {
-    transform: translateX(0);
-    opacity: 1;
+
+  /* Custom scrollbar for dark theme */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #020617;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1E293B;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #334155;
   }
 }
 
-/* Dark mode */
-.dark {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border-color: #334155;
+@layer components {
+  /* Card — primary surface */
+  .card {
+    @apply bg-app-surface border border-app-border rounded-xl;
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+  .card-hover:hover {
+    @apply border-app-border-focus -translate-y-0.5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full px-4 py-3 bg-app-bg border border-app-border-focus rounded-lg text-sm text-slate-50
+           placeholder:text-slate-500
+           focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20 focus:outline-none
+           transition-all duration-200;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-primary hover:bg-brand-primary-hover
+           text-white font-medium text-sm rounded-lg cursor-pointer
+           transition-all duration-200 active:scale-[0.98];
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-app-surface hover:bg-app-surface-hover
+           text-slate-200 font-medium text-sm rounded-lg border border-app-border-focus cursor-pointer
+           transition-all duration-200 active:scale-[0.98];
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-slate-400 hover:text-slate-200
+           font-medium text-sm rounded-lg cursor-pointer transition-all duration-200;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-red-500/10 hover:bg-red-500
+           text-red-400 hover:text-white font-medium text-sm rounded-lg cursor-pointer
+           transition-all duration-200 active:scale-[0.98];
+  }
+
+  /* Page section */
+  .page-section {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 py-6 md:py-8;
+  }
+
+  /* Stat card */
+  .stat-card {
+    @apply card p-5 card-hover;
+  }
+
+  /* Label text */
+  .label {
+    @apply text-xs font-medium text-slate-500 uppercase tracking-wider;
+  }
 }
 
-.dark .bg-white {
-  background-color: #1e293b !important;
-}
-
-.dark .bg-slate-50 {
-  background-color: #0f172a !important;
-}
-
-.dark .text-primary {
-  color: #f1f5f9 !important;
-}
-
-.dark .text-slate-500,
-.dark .text-slate-600,
-.dark .text-slate-700 {
-  color: #94a3b8 !important;
-}
-
-.dark .text-slate-400 {
-  color: #64748b !important;
-}
-
-.dark .border-slate-200,
-.dark .border-slate-300 {
-  border-color: #334155 !important;
-}
-
-.dark .shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
-}
-
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: #1e293b !important;
-  color: #f1f5f9 !important;
-  border-color: #334155 !important;
-}
-
-.dark .bg-slate-100 {
-  background-color: #1e293b !important;
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #22C55E 0%, #0EA5E9 100%);
+  }
 }

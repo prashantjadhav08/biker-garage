@@ -1,26 +1,26 @@
-export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
-
-export function verifyAdmin(username: string, password: string): boolean {
-  return username === ADMIN_USERNAME && password === ADMIN_PASSWORD;
+export function setAuthToken(token: string): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('chakra_auth_token', token);
+  }
 }
 
-export function setAuthToken(): void {
+export function getAuthToken(): string | null {
   if (typeof window !== 'undefined') {
-    localStorage.setItem('chakra_auth', 'true');
+    return localStorage.getItem('chakra_auth_token');
   }
+  return null;
 }
 
 export function clearAuthToken(): void {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('chakra_auth');
+    localStorage.removeItem('chakra_auth_token');
     localStorage.removeItem('chakra_role');
   }
 }
 
 export function isAuthenticated(): boolean {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('chakra_auth') === 'true';
+    return !!localStorage.getItem('chakra_auth_token');
   }
   return false;
 }

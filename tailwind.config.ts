@@ -10,30 +10,32 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          black: "#050505",
-          dark: "#0F172A",
-          offwhite: "#F8F9FA",
-          accent: "#F97316",
-          highlight: "#10B981",
-          muted: "#64748B",
-          glass: "rgba(255, 255, 255, 0.03)",
-          "glass-light": "rgba(255, 255, 255, 0.7)",
+        app: {
+          bg: '#020617',
+          surface: '#0F172A',
+          'surface-hover': '#1E293B',
+          border: '#1E293B',
+          'border-focus': '#334155',
         },
-        primary: "#164E63",
-        secondary: "#22D3EE",
-        cta: "#22C55E",
-        accent: "#F59E0B",
+        brand: {
+          primary: '#22C55E',
+          'primary-hover': '#16A34A',
+          accent: '#0EA5E9',
+          'accent-hover': '#0284C7',
+        },
       },
       fontFamily: {
-        display: ["Syncopate", "sans-serif"],
-        mono: ["Fira Code", "monospace"],
-        sans: ["Fira Sans", "sans-serif"],
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'monospace'],
       },
-      boxShadow: {
-        'neon': '0 0 20px rgba(249, 115, 22, 0.2)',
-        'soft': '0 10px 30px -5px rgba(0, 0, 0, 0.05)',
-      }
+      borderRadius: {
+        'card': '12px',
+      },
+      transitionDuration: {
+        '150': '150ms',
+        '200': '200ms',
+        '300': '300ms',
+      },
     },
   },
   plugins: [],

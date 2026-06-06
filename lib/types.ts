@@ -4,6 +4,10 @@ export interface Bike {
   bike_name: string;
   customer_name: string;
   mobile: string;
+  status?: string;
+  notes?: string;
+  mechanic_name?: string;
+  estimated_time?: string;
   created_at: string;
 }
 
@@ -29,7 +33,27 @@ export interface Bill {
   gst_amount: number;
   discount: number;
   total: number;
+  paid_amount?: number;
+  payment_status?: string;
   created_at: string;
+}
+
+export interface Part {
+  id: string;
+  name: string;
+  category: string;
+  quantity: number;
+  price: number;
+  min_stock: number;
+  created_at: string;
+}
+
+export interface ServiceItem {
+  id: string;
+  name: string;
+  type: string;
+  price: number;
+  category: string;
 }
 
 export type TabType = 'bikes' | 'billing' | 'history';

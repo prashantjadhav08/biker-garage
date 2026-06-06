@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { Bill } from './types';
+import { Bill } from '@/lib/types';
 
 const formatCurrency = (amount: number): string => {
   const formatted = new Intl.NumberFormat('en-IN', {

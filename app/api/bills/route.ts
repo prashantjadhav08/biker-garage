@@ -1,58 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { getBills, createBill, getBillById, getBillStats, updateBill } from '@/lib/services/bills';
+import { jsonResponse, optionsResponse } from '@/lib/api/cors';
+
+export async function OPTIONS() {
+  return optionsResponse();
+}
 
 export async function GET(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
-  }
-
   try {
     const { searchParams } = new URL(request.url);
     const days = searchParams.get('days');
     const id = searchParams.get('id');
+    const stats = searchParams.get('stats');
+
+    if (stats) {
+      const statsData = getBillStats();
+      return jsonResponse(statsData);
+    }
 
     if (id) {
-      const { data, error } = await supabase!
-        .from('bills')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) {
-        return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
+      const bill = getBillById(id);
+      if (!bill) {
+        return jsonResponse({ error: 'Bill not found' }, 404);
       }
-      return NextResponse.json(data);
+      return jsonResponse(bill);
     }
 
-    let query = supabase!
-      .from('bills')
-      .select('*');
-
-    if (days) {
-      const daysAgo = new Date();
-      daysAgo.setDate(daysAgo.getDate() - parseInt(days));
-      query = query.gte('created_at', daysAgo.toISOString());
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching bills:', error);
-      return NextResponse.json({ error: 'Failed to fetch bills' }, { status: 500 });
-    }
-
-    return NextResponse.json(data || []);
-  } catch (error) {
+    const bills = getBills(days ? parseInt(days) : undefined);
+    return jsonResponse(bills);
+  } catch (error: any) {
     console.error('Error fetching bills:', error);
-    return NextResponse.json({ error: 'Failed to fetch bills' }, { status: 500 });
+    return jsonResponse({ error: 'Failed to fetch bills' }, 500);
   }
 }
 
 export async function POST(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
-  }
-
   try {
     const body = await request.json();
     const {
@@ -68,57 +50,59 @@ export async function POST(request: NextRequest) {
       parts_amount,
       gst_percent,
       discount,
+      payment_status,
+      paid_amount,
     } = body;
 
     if (!service_desc) {
-      return NextResponse.json({ error: 'Service description is required' }, { status: 400 });
+      return jsonResponse({ error: 'Service description is required' }, 400);
     }
 
-    const serviceAmt = parseFloat(service_amount) || 0;
-    const partsAmt = parseFloat(parts_amount) || 0;
-    const gstPct = parseFloat(gst_percent) || 18;
-    const discountAmt = parseFloat(discount) || 0;
-
-    const subtotal = serviceAmt + partsAmt;
-    const gst_amount = subtotal * (gstPct / 100);
-    const total = Math.max(0, subtotal + gst_amount - discountAmt);
-
-    const bill_number = `CK${Date.now().toString().slice(-6)}`;
-
-    const newBill = {
-      id: Date.now().toString(),
-      bill_number,
-      bike_id: bike_id || null,
-      bike_number: bike_number?.toUpperCase() || '',
+    const bill = createBill({
+      bike_id: bike_id || '',
+      bike_number: bike_number || '',
       bike_name: bike_name || '',
       customer_name: customer_name || '',
       mobile: mobile || '',
       service_desc,
       service_items: service_items || [],
       parts_items: parts_items || [],
-      service_amount: serviceAmt,
-      parts_amount: partsAmt,
-      gst_percent: gstPct,
-      gst_amount,
-      discount: discountAmt,
-      total,
-      created_at: new Date().toISOString(),
-    };
+      service_amount: parseFloat(service_amount) || 0,
+      parts_amount: parseFloat(parts_amount) || 0,
+      gst_percent: parseFloat(gst_percent) || 18,
+      discount: parseFloat(discount) || 0,
+      payment_status: payment_status || 'Pending',
+      paid_amount: parseFloat(paid_amount) || 0,
+    });
 
-    const { data, error } = await supabase!
-      .from('bills')
-      .insert(newBill)
-      .select()
-      .single();
+    return jsonResponse(bill, 201);
+  } catch (error: any) {
+    console.error('Error creating bill:', error);
+    return jsonResponse({ error: error.message || 'Failed to create bill' }, 500);
+  }
+}
 
-    if (error) {
-      console.error('Error creating bill:', error);
-      return NextResponse.json({ error: 'Failed to create bill' }, { status: 500 });
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, payment_status, paid_amount } = body;
+
+    if (!id) {
+      return jsonResponse({ error: 'Bill ID is required' }, 400);
     }
 
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
-    console.error('Error creating bill:', error);
-    return NextResponse.json({ error: 'Failed to create bill' }, { status: 500 });
+    const bill = updateBill(id, {
+      payment_status,
+      paid_amount: paid_amount !== undefined ? parseFloat(paid_amount) : undefined,
+    });
+
+    if (!bill) {
+      return jsonResponse({ error: 'Bill not found' }, 404);
+    }
+
+    return jsonResponse(bill);
+  } catch (error: any) {
+    console.error('Error updating bill:', error);
+    return jsonResponse({ error: error.message || 'Failed to update bill' }, 500);
   }
 }

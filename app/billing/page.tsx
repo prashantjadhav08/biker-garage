@@ -3,15 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, clearAuthToken } from '@/lib/auth';
-import { getBikes, createBill } from '@/lib/services';
+import { getBikesClient, createBillClient } from '@/lib/api/client';
 import { Bike, Bill } from '@/lib/types';
-import { bikeParts, serviceTypes } from '@/lib/parts';
+import { bikeParts, serviceTypes } from '@/lib/utils/constants';
 import Navigation from '@/components/Navigation';
 import LoadingWheel from '@/components/LoadingWheel';
 import Modal from '@/components/Modal';
 import Toast from '@/components/Toast';
-import { generatePDF } from '@/lib/pdf';
-import ShareButton from '@/components/ShareButton';
+import { generatePDF } from '@/lib/utils/pdf';
 
 export default function BillingPage() {
   const [bikes, setBikes] = useState<Bike[]>([]);
@@ -35,55 +34,38 @@ export default function BillingPage() {
     discount: '',
   });
 
-  const [calculations, setCalculations] = useState({
-    subtotal: 0,
-    gst_amount: 0,
-    total: 0,
-  });
-
+  const [calculations, setCalculations] = useState({ subtotal: 0, gst_amount: 0, total: 0 });
   const [selectedParts, setSelectedParts] = useState<{ name: string; price: number }[]>([]);
   const [selectedServices, setSelectedServices] = useState<{ name: string; price: number }[]>([]);
   const [manualNotes, setManualNotes] = useState('');
   const [activeTab, setActiveTab] = useState<'services' | 'parts'>('services');
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
+    if (!isAuthenticated()) { router.push('/login'); return; }
     fetchData();
   }, [router]);
 
   const fetchData = async () => {
-    try {
-      const data = await getBikes();
-      setBikes(data);
-    } catch (error) {
-      console.error('Error fetching bikes:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    try {       const data = await getBikesClient();
+      setBikes(data); }
+    catch (error) { console.error('Error fetching bikes:', error); }
+    finally { setIsLoading(false); }
   };
 
-  const handleLogout = () => {
-    clearAuthToken();
-    router.push('/login');
-  };
+  const handleLogout = () => { clearAuthToken(); router.push('/login'); };
 
   useEffect(() => {
     const service = Math.max(0, parseFloat(formData.service_amount) || 0);
     const parts = Math.max(0, parseFloat(formData.parts_amount) || 0);
     const gst = parseFloat(formData.gst_percent) || 0;
     const discount = Math.max(0, parseFloat(formData.discount) || 0);
-
     const subtotal = service + parts;
     const gst_amount = subtotal * (gst / 100);
     const total = Math.max(0, subtotal + gst_amount - discount);
-
     setCalculations({ subtotal, gst_amount, total });
   }, [formData.service_amount, formData.parts_amount, formData.gst_percent, formData.discount]);
 
-  const showToastMessage = (message: string, type: 'success' | 'error') => {
+  const showToastMsg = (message: string, type: 'success' | 'error') => {
     setToastMessage(message);
     setToastType(type);
     setShowToast(true);
@@ -91,138 +73,71 @@ export default function BillingPage() {
   };
 
   const handleBikeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const bikeId = e.target.value;
-    const bike = bikes.find((b) => b.id === bikeId);
+    const bike = bikes.find((b) => b.id === e.target.value);
     setSelectedBike(bike || null);
-    setFormData((prev) => ({ ...prev, bike_id: bikeId }));
+    setFormData((prev) => ({ ...prev, bike_id: e.target.value }));
     setErrors((prev) => ({ ...prev, bike_id: '' }));
   };
 
-  const updateServiceDesc = (parts: { name: string; price: number }[], services: { name: string; price: number }[]) => {
+  const updateServiceDesc = (parts: typeof selectedParts, services: typeof selectedServices) => {
     const partsDesc = parts.map(p => p.name).join(', ');
     const servicesDesc = services.map(s => s.name).join(', ');
     const allItems = [servicesDesc, partsDesc].filter(Boolean).join(' | ');
-    
-    let combined = '';
-    if (allItems) {
-      combined = allItems;
-      if (manualNotes) {
-        combined += `\n\nNotes: ${manualNotes}`;
-      }
-    } else if (manualNotes) {
-      combined = manualNotes;
-    }
-    
+    let combined = allItems || '';
+    if (manualNotes) combined += (combined ? ' | ' : '') + manualNotes;
     setFormData((prev) => ({ ...prev, service_desc: combined }));
   };
 
   const addPart = (part: { name: string; price: number }) => {
-    const currentPartsAmt = parseFloat(formData.parts_amount) || 0;
     const newParts = [...selectedParts, part];
-    setFormData((prev) => ({ ...prev, parts_amount: String(currentPartsAmt + part.price) }));
+    setFormData((prev) => ({ ...prev, parts_amount: String((parseFloat(prev.parts_amount) || 0) + part.price) }));
     setSelectedParts(newParts);
     updateServiceDesc(newParts, selectedServices);
   };
 
   const removePart = (index: number) => {
-    const removedPart = selectedParts[index];
-    const currentPartsAmt = parseFloat(formData.parts_amount) || 0;
+    const removed = selectedParts[index];
     const newParts = selectedParts.filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, parts_amount: String(Math.max(0, currentPartsAmt - removedPart.price)) }));
+    setFormData((prev) => ({ ...prev, parts_amount: String(Math.max(0, (parseFloat(prev.parts_amount) || 0) - removed.price)) }));
     setSelectedParts(newParts);
     updateServiceDesc(newParts, selectedServices);
   };
 
   const addService = (service: { name: string; price: number }) => {
-    const currentServiceAmt = parseFloat(formData.service_amount) || 0;
     const newServices = [...selectedServices, service];
-    setFormData((prev) => ({ ...prev, service_amount: String(currentServiceAmt + service.price) }));
+    setFormData((prev) => ({ ...prev, service_amount: String((parseFloat(prev.service_amount) || 0) + service.price) }));
     setSelectedServices(newServices);
     updateServiceDesc(selectedParts, newServices);
   };
 
   const removeService = (index: number) => {
-    const removedService = selectedServices[index];
-    const currentServiceAmt = parseFloat(formData.service_amount) || 0;
+    const removed = selectedServices[index];
     const newServices = selectedServices.filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, service_amount: String(Math.max(0, currentServiceAmt - removedService.price)) }));
+    setFormData((prev) => ({ ...prev, service_amount: String(Math.max(0, (parseFloat(prev.service_amount) || 0) - removed.price)) }));
     setSelectedServices(newServices);
     updateServiceDesc(selectedParts, newServices);
   };
 
-  const handleServicePriceChange = (index: number, value: string) => {
-    const newPrice = Math.max(0, parseFloat(value) || 0);
-    const updatedServices = [...selectedServices];
-    const oldPrice = updatedServices[index].price;
-    updatedServices[index].price = newPrice;
-    
-    const currentTotal = parseFloat(formData.service_amount) || 0;
-    setFormData(prev => ({ ...prev, service_amount: String(currentTotal - oldPrice + newPrice) }));
-    setSelectedServices(updatedServices);
-  };
-
-  const handlePartPriceChange = (index: number, value: string) => {
-    const newPrice = Math.max(0, parseFloat(value) || 0);
-    const updatedParts = [...selectedParts];
-    const oldPrice = updatedParts[index].price;
-    updatedParts[index].price = newPrice;
-    
-    const currentTotal = parseFloat(formData.parts_amount) || 0;
-    setFormData(prev => ({ ...prev, parts_amount: String(currentTotal - oldPrice + newPrice) }));
-    setSelectedParts(updatedParts);
-  };
-
-  const getSelectedItemsDesc = () => {
-    return formData.service_desc.trim() || 'Service';
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    
-    if (['service_amount', 'parts_amount', 'discount'].includes(name)) {
-      if (value && parseFloat(value) < 0) return;
-    }
-
-    if (name === 'service_desc') {
-      setManualNotes(value);
-    }
-    
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: '' }));
-  };
-
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.bike_id) {
-      newErrors.bike_id = 'Bike selection required';
-    }
-
-    if (!formData.service_desc.trim()) {
-      newErrors.service_desc = 'Service description required';
-    }
-
+    if (!formData.bike_id) newErrors.bike_id = 'Select a bike';
+    if (!formData.service_desc.trim()) newErrors.service_desc = 'Service description required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+    if (!validateForm()) return;
     setIsSubmitting(true);
-
     try {
-      const newBill = await createBill({
+      const newBill = await createBillClient({
         bike_id: selectedBike?.id || '',
         bike_number: selectedBike?.bike_number || '',
         bike_name: selectedBike?.bike_name || '',
         customer_name: selectedBike?.customer_name || '',
         mobile: selectedBike?.mobile || '',
-        service_desc: getSelectedItemsDesc(),
+        service_desc: formData.service_desc,
         service_items: selectedServices,
         parts_items: selectedParts,
         service_amount: parseFloat(formData.service_amount) || 0,
@@ -230,476 +145,201 @@ export default function BillingPage() {
         gst_percent: parseFloat(formData.gst_percent),
         discount: parseFloat(formData.discount) || 0,
       });
-
       setCurrentBill(newBill);
       setShowBill(true);
-      showToastMessage('Invoice created successfully', 'success');
-
-      setFormData({
-        bike_id: '',
-        service_desc: '',
-        service_amount: '',
-        parts_amount: '',
-        gst_percent: '18',
-        discount: '',
-      });
+      showToastMsg('Invoice created successfully', 'success');
+      setFormData({ bike_id: '', service_desc: '', service_amount: '', parts_amount: '', gst_percent: '18', discount: '' });
       setSelectedBike(null);
       setSelectedParts([]);
       setSelectedServices([]);
       setManualNotes('');
     } catch (error: any) {
       console.error('Error creating bill:', error);
-      showToastMessage('Failed to create invoice', 'error');
+      showToastMsg('Failed to create invoice', 'error');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handlePrint = () => {
-    if (currentBill) {
-      generatePDF(currentBill);
-    }
-  };
+  const handlePrint = () => { if (currentBill) generatePDF(currentBill); };
+  const formatDate = (dateString: string) => { try { return new Date(dateString).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return 'N/A'; } };
 
-  const formatDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'N/A';
-      return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    } catch {
-      return 'N/A';
-    }
-  };
-
-  if (isLoading) {
-    return <LoadingWheel />;
-  }
+  if (isLoading) return <LoadingWheel />;
 
   return (
-    <div className="min-h-screen bg-chakra">
+    <div className="min-h-screen bg-app-bg">
       <Navigation onLogout={handleLogout} />
-      <main className="max-w-7xl mx-auto px-6 py-12 flex-1 fade-up">
-        <div className="mb-12">
-          <span className="text-brand-accent font-display text-[10px] font-bold tracking-[0.4em] block mb-2 uppercase">Billing System</span>
-          <h1 className="text-5xl font-display font-bold text-slate-900 dark:text-white leading-none uppercase">CREATE <span className="text-gradient">INVOICE</span></h1>
+      <main className="page-section">
+        <div className="mb-6">
+          <p className="text-xs text-slate-500 uppercase tracking-wider">Billing System</p>
+          <h1 className="text-2xl font-bold text-slate-50 mt-0.5">Create Invoice</h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column: Bike Selection */}
-          <div className="space-y-8">
-            <div className="glass-panel rounded-[2.5rem] p-8 md:p-10 border border-slate-100 dark:border-white/5">
-              <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-4 uppercase">
-                <div className="bg-brand-accent/10 p-3 rounded-2xl">
-                  <svg className="w-6 h-6 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column */}
+          <div className="space-y-6">
+            {/* Bike Selection */}
+            <div className="card p-5">
+              <h3 className="text-sm font-semibold text-slate-50 mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                 Bike & Customer
               </h3>
-
-              <div className="space-y-6">
-                <div className="group">
-                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
-                    Select Bike
-                  </label>
-                  <select
-                    name="bike_id"
-                    value={formData.bike_id}
-                    onChange={handleBikeSelect}
-                    className={`w-full p-5 bg-white dark:bg-white/5 border rounded-[1.5rem] cursor-pointer focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-sm tracking-tight text-slate-900 dark:text-white ${
-                      errors.bike_id ? 'border-rose-500' : 'border-slate-200 dark:border-white/5'
-                    }`}
-                  >
-                    <option value="" className="bg-white dark:bg-brand-black text-slate-900 dark:text-white">-- SELECT A BIKE --</option>
+              <div className="space-y-3">
+                <div>
+                  <label className="label mb-1.5 block">Select Bike</label>
+                  <select name="bike_id" value={formData.bike_id} onChange={handleBikeSelect}
+                    className={`input-field cursor-pointer ${errors.bike_id ? 'border-red-500' : ''}`}>
+                    <option value="" className="bg-app-bg">Select a bike</option>
                     {bikes.map((bike) => (
-                      <option key={bike.id} value={bike.id} className="bg-white dark:bg-brand-black text-slate-900 dark:text-white">
-                        {bike.bike_number} — {bike.bike_name}
-                      </option>
+                      <option key={bike.id} value={bike.id} className="bg-app-bg">{bike.bike_number} — {bike.bike_name}</option>
                     ))}
                   </select>
-                  {errors.bike_id && <p className="text-rose-500 text-[10px] font-display font-bold tracking-widest mt-3 ml-2 uppercase">{errors.bike_id}</p>}
+                  {errors.bike_id && <p className="text-red-400 text-xs mt-1">{errors.bike_id}</p>}
                 </div>
-
                 {selectedBike && (
-                  <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[2rem] p-8 fade-up relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-                    <div className="grid grid-cols-2 gap-8 relative z-10">
-                      <div>
-                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Bike Number</span>
-                        <p className="font-mono font-bold text-brand-accent text-lg">{selectedBike.bike_number}</p>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Bike Model</span>
-                        <p className="font-display font-bold text-slate-800 dark:text-white text-sm tracking-tight uppercase">{selectedBike.bike_name}</p>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Customer</span>
-                        <p className="font-display font-bold text-slate-800 dark:text-white text-sm tracking-tight uppercase">{selectedBike.customer_name}</p>
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] block mb-2 uppercase">Mobile</span>
-                        <p className="font-display font-bold text-slate-800 dark:text-white text-sm tracking-tight">+91 {selectedBike.mobile}</p>
-                      </div>
+                  <div className="bg-app-bg rounded-lg p-3 border border-app-border">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-slate-500 text-xs">Bike Number</span><p className="font-mono font-semibold text-brand-accent">{selectedBike.bike_number}</p></div>
+                      <div><span className="text-slate-500 text-xs">Model</span><p className="text-slate-200">{selectedBike.bike_name}</p></div>
+                      <div><span className="text-slate-500 text-xs">Customer</span><p className="text-slate-200">{selectedBike.customer_name}</p></div>
+                      <div><span className="text-slate-500 text-xs">Mobile</span><p className="font-mono text-slate-200">+91 {selectedBike.mobile}</p></div>
                     </div>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Catalog Section */}
-            <div className="glass-panel rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-white/5">
-              <div className="flex bg-slate-50 dark:bg-white/5 p-1">
-                <button
-                  onClick={() => setActiveTab('services')}
-                  className={`flex-1 py-4 text-[10px] font-display font-bold tracking-[0.3em] transition-all rounded-2xl uppercase ${
-                    activeTab === 'services' 
-                      ? 'bg-brand-accent text-white shadow-neon' 
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  Services
-                </button>
-                <button
-                  onClick={() => setActiveTab('parts')}
-                  className={`flex-1 py-4 text-[10px] font-display font-bold tracking-[0.3em] transition-all rounded-2xl uppercase ${
-                    activeTab === 'parts' 
-                      ? 'bg-brand-accent text-white shadow-neon' 
-                      : 'text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  Spare Parts
-                </button>
+            {/* Catalog */}
+            <div className="card overflow-hidden">
+              <div className="flex bg-app-bg p-1 border-b border-app-border">
+                <button onClick={() => setActiveTab('services')} className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all cursor-pointer ${activeTab === 'services' ? 'bg-brand-primary text-white' : 'text-slate-400 hover:text-slate-200'}`}>Services</button>
+                <button onClick={() => setActiveTab('parts')} className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all cursor-pointer ${activeTab === 'parts' ? 'bg-brand-accent text-white' : 'text-slate-400 hover:text-slate-200'}`}>Spare Parts</button>
               </div>
-              
-              <div className="p-8 max-h-[450px] overflow-y-auto custom-scrollbar">
-                {activeTab === 'services' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {serviceTypes.map((service, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => addService(service)}
-                        className="p-5 text-left bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl hover:border-brand-accent/30 hover:bg-brand-accent/5 transition-all group relative overflow-hidden cursor-pointer"
-                      >
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-brand-accent/5 rounded-full -mr-8 -mt-8"></div>
-                        <p className="text-[11px] font-display font-bold text-slate-600 dark:text-slate-300 group-hover:text-brand-accent tracking-tighter mb-2 uppercase">{service.name}</p>
-                        <p className="text-sm font-mono font-bold text-slate-900 dark:text-white">₹{service.price}</p>
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {bikeParts.map((part, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => addPart(part)}
-                        className="p-5 text-left bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all group relative overflow-hidden cursor-pointer"
-                      >
-                        <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/5 rounded-full -mr-8 -mt-8"></div>
-                        <p className="text-[11px] font-display font-bold text-slate-600 dark:text-slate-300 group-hover:text-emerald-500 tracking-tighter mb-2 uppercase">{part.name}</p>
-                        <p className="text-sm font-mono font-bold text-slate-900 dark:text-white">₹{part.price}</p>
-                      </button>
-                    ))}
-                  </div>
-                )}
+              <div className="p-3 max-h-[360px] overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {(activeTab === 'services' ? serviceTypes : bikeParts).map((item, idx) => (
+                    <button key={idx} type="button" onClick={() => activeTab === 'services' ? addService(item) : addPart(item)}
+                      className="p-3 text-left bg-app-bg border border-app-border rounded-lg hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all cursor-pointer">
+                      <p className="text-xs font-medium text-slate-300">{item.name}</p>
+                      <p className="text-sm font-mono font-semibold text-slate-50 mt-0.5">₹{item.price}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Billing Details */}
-          <div className="glass-panel rounded-[2.5rem] p-8 md:p-10 border border-slate-100 dark:border-white/5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 rounded-full -mr-32 -mt-32 blur-[80px]"></div>
-            
-            <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-4 relative z-10 uppercase">
-              <div className="bg-emerald-500/10 p-3 rounded-2xl">
-                <svg className="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-                </svg>
-              </div>
+          {/* Right Column - Billing Summary */}
+          <div className="card p-5">
+            <h3 className="text-sm font-semibold text-slate-50 mb-5 flex items-center gap-2">
+              <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
               Billing Summary
             </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
-              {/* Selected Items List */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Selected items */}
               {(selectedServices.length > 0 || selectedParts.length > 0) && (
-                <div className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[2rem] p-6 space-y-4">
-                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.4em] px-2 mb-4 uppercase">Selected Items</h4>
-                  <div className="space-y-3">
-                    {selectedServices.map((s, idx) => (
-                      <div key={`s-${idx}`} className="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5 fade-up">
-                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase flex-1 mr-4">{s.name}</span>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center bg-slate-50 dark:bg-black/20 rounded-lg px-2 border border-slate-200 dark:border-white/10 focus-within:border-brand-accent transition-all">
-                            <span className="text-[10px] font-mono font-bold text-brand-accent/60">₹</span>
-                            <input 
-                              type="number" 
-                              value={s.price}
-                              onChange={(e) => handleServicePriceChange(idx, e.target.value)}
-                              className="w-16 bg-transparent border-none outline-none text-xs font-mono font-bold text-brand-accent p-1 text-right appearance-none"
-                            />
-                          </div>
-                          <button type="button" onClick={() => removeService(idx)} className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors bg-slate-50 dark:bg-white/5 rounded-lg cursor-pointer">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                          </button>
-                        </div>
+                <div className="bg-app-bg rounded-lg p-4 border border-app-border space-y-2">
+                  <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Selected Items</p>
+                  {[...selectedServices.map((s, i) => ({ ...s, type: 'service', idx: i })), ...selectedParts.map((p, i) => ({ ...p, type: 'part', idx: i }))].map((item) => (
+                    <div key={`${item.type}-${item.idx}`} className="flex items-center justify-between text-xs">
+                      <span className="text-slate-300">{item.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-slate-400">₹{item.price}</span>
+                        <button type="button" onClick={() => item.type === 'service' ? removeService(item.idx) : removePart(item.idx)}
+                          className="p-1 text-slate-600 hover:text-red-400 cursor-pointer transition-colors">
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
                       </div>
-                    ))}
-                    {selectedParts.map((p, idx) => (
-                      <div key={`p-${idx}`} className="flex items-center justify-between bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/5 fade-up">
-                        <span className="text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 tracking-tight uppercase flex-1 mr-4">{p.name}</span>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center bg-slate-50 dark:bg-black/20 rounded-lg px-2 border border-slate-200 dark:border-white/10 focus-within:border-emerald-500 transition-all">
-                            <span className="text-[10px] font-mono font-bold text-emerald-600/60 dark:text-emerald-500/60">₹</span>
-                            <input 
-                              type="number" 
-                              value={p.price}
-                              onChange={(e) => handlePartPriceChange(idx, e.target.value)}
-                              className="w-16 bg-transparent border-none outline-none text-xs font-mono font-bold text-emerald-600 dark:text-emerald-500 p-1 text-right appearance-none"
-                            />
-                          </div>
-                          <button type="button" onClick={() => removePart(idx)} className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors bg-slate-50 dark:bg-white/5 rounded-lg cursor-pointer">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
-              <div className="group">
-                <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 group-focus-within:text-brand-accent transition-colors uppercase">
-                  Service Description & Notes
-                </label>
-                <textarea
-                  name="service_desc"
-                  value={formData.service_desc}
-                  onChange={handleChange}
-                  rows={3}
-                  placeholder="Enter details of service work..."
-                  className={`w-full p-5 bg-white dark:bg-white/5 border rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all resize-none text-slate-900 dark:text-white font-mono text-sm ${
-                    errors.service_desc ? 'border-rose-500' : 'border-slate-200 dark:border-white/5'
-                  }`}
-                />
-                {errors.service_desc && <p className="text-rose-500 text-[10px] font-display font-bold tracking-widest mt-3 ml-2 uppercase">{errors.service_desc}</p>}
+              <div>
+                <label className="label mb-1.5 block">Service Description & Notes</label>
+                <textarea name="service_desc" value={formData.service_desc} onChange={(e) => { setManualNotes(e.target.value); setFormData(p => ({ ...p, service_desc: e.target.value })); }}
+                  rows={3} placeholder="Enter details..." className={`input-field resize-none ${errors.service_desc ? 'border-red-500' : ''}`} />
+                {errors.service_desc && <p className="text-red-400 text-xs mt-1">{errors.service_desc}</p>}
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div className="group">
-                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
-                    Service Total (₹)
-                  </label>
-                  <input
-                    type="number"
-                    name="service_amount"
-                    value={formData.service_amount}
-                    onChange={handleChange}
-                    placeholder="0.00"
-                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-slate-900 dark:text-white"
-                  />
-                </div>
-                <div className="group">
-                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
-                    Parts Total (₹)
-                  </label>
-                  <input
-                    type="number"
-                    name="parts_amount"
-                    value={formData.parts_amount}
-                    onChange={handleChange}
-                    placeholder="0.00"
-                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-slate-900 dark:text-white"
-                  />
-                </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="label mb-1.5 block">Service Total (₹)</label><input type="number" name="service_amount" value={formData.service_amount} onChange={(e) => setFormData(p => ({ ...p, service_amount: e.target.value }))} placeholder="0.00" className="input-field" /></div>
+                <div><label className="label mb-1.5 block">Parts Total (₹)</label><input type="number" name="parts_amount" value={formData.parts_amount} onChange={(e) => setFormData(p => ({ ...p, parts_amount: e.target.value }))} placeholder="0.00" className="input-field" /></div>
               </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div className="group">
-                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
-                    GST Rate (%)
-                  </label>
-                  <select
-                    name="gst_percent"
-                    value={formData.gst_percent}
-                    onChange={handleChange}
-                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none cursor-pointer transition-all text-slate-900 dark:text-white font-mono"
-                  >
-                    <option value="0" className="bg-white dark:bg-brand-black">0% — No Tax</option>
-                    <option value="5" className="bg-white dark:bg-brand-black">5% — GST</option>
-                    <option value="12" className="bg-white dark:bg-brand-black">12% — GST</option>
-                    <option value="18" className="bg-white dark:bg-brand-black">18% — GST</option>
-                    <option value="28" className="bg-white dark:bg-brand-black">28% — GST</option>
+              <div className="grid grid-cols-2 gap-3">
+                <div><label className="label mb-1.5 block">GST Rate (%)</label>
+                  <select name="gst_percent" value={formData.gst_percent} onChange={(e) => setFormData(p => ({ ...p, gst_percent: e.target.value }))} className="input-field cursor-pointer">
+                    <option value="0" className="bg-app-bg">0%</option>
+                    <option value="5" className="bg-app-bg">5%</option>
+                    <option value="12" className="bg-app-bg">12%</option>
+                    <option value="18" className="bg-app-bg">18%</option>
+                    <option value="28" className="bg-app-bg">28%</option>
                   </select>
                 </div>
-                <div className="group">
-                  <label className="block text-[10px] font-display font-bold text-slate-500 tracking-[0.2em] mb-3 ml-2 uppercase">
-                    Discount (₹)
-                  </label>
-                  <input
-                    type="number"
-                    name="discount"
-                    value={formData.discount}
-                    onChange={handleChange}
-                    placeholder="0.00"
-                    className="w-full p-5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-8 focus:ring-brand-accent/5 outline-none transition-all font-mono text-rose-600 dark:text-rose-500"
-                  />
-                </div>
+                <div><label className="label mb-1.5 block">Discount (₹)</label><input type="number" name="discount" value={formData.discount} onChange={(e) => setFormData(p => ({ ...p, discount: e.target.value }))} placeholder="0.00" className="input-field" /></div>
               </div>
 
-              {/* Total Card */}
-              <div className="bg-brand-accent text-white rounded-[2.5rem] p-10 shadow-neon-strong relative overflow-hidden kinetic-hover group">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 transition-transform group-hover:scale-125"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-black/10 rounded-full -ml-16 -mb-16"></div>
-                
-                <div className="space-y-5 relative z-10">
-                  <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] opacity-80 uppercase">
-                    <span>Subtotal</span>
-                    <span className="font-mono">₹{calculations.subtotal.toLocaleString('en-IN')}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] opacity-80 uppercase">
-                    <span>GST ({formData.gst_percent}%)</span>
-                    <span className="font-mono">₹{calculations.gst_amount.toLocaleString('en-IN')}</span>
-                  </div>
-                  {parseFloat(formData.discount) > 0 && (
-                    <div className="flex justify-between items-center text-[10px] font-display font-bold tracking-[0.2em] text-black dark:text-slate-900 uppercase">
-                      <span>Discount</span>
-                      <span className="font-mono">-₹{parseFloat(formData.discount).toLocaleString('en-IN')}</span>
-                    </div>
-                  )}
-                  <div className="pt-8 border-t border-white/20 flex justify-between items-end">
-                    <div>
-                      <span className="text-[10px] font-display font-bold text-white/60 uppercase tracking-[0.4em] block mb-2 uppercase">Final Amount</span>
-                      <span className="text-5xl font-mono font-bold tracking-tighter">
-                        ₹{Math.round(calculations.total).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                    <div className="bg-white text-brand-accent px-4 py-2 rounded-xl text-[10px] font-display font-bold tracking-widest shadow-xl uppercase">
-                      Ready
-                    </div>
+              {/* Total */}
+              <div className="bg-brand-primary rounded-xl p-5 text-white">
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between"><span className="text-white/70">Subtotal</span><span className="font-mono">₹{calculations.subtotal.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-white/70">GST ({formData.gst_percent}%)</span><span className="font-mono">₹{calculations.gst_amount.toLocaleString()}</span></div>
+                  {parseFloat(formData.discount) > 0 && <div className="flex justify-between"><span className="text-white/70">Discount</span><span className="font-mono">-₹{parseFloat(formData.discount).toLocaleString()}</span></div>}
+                  <div className="pt-2 border-t border-white/20 flex justify-between items-end">
+                    <span className="text-xs text-white/60">Final Amount</span>
+                    <span className="text-2xl font-bold font-mono">₹{Math.round(calculations.total).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full bg-slate-900 dark:bg-white text-white dark:text-brand-black py-6 rounded-[2rem] font-display font-bold tracking-[0.2em] text-sm shadow-2xl kinetic-hover cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-4 transition-all uppercase"
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-brand-accent" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <span>Generate Bill</span>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </>
-                )}
+              <button type="submit" disabled={isSubmitting} className="w-full btn-primary py-3 disabled:opacity-50">
+                {isSubmitting ? 'Processing...' : 'Generate Bill'}
               </button>
             </form>
           </div>
         </div>
 
-        {/* Modal Invoice Result */}
+        {/* Bill Modal */}
         {showBill && currentBill && (
-          <Modal
-            isOpen={showBill}
-            onClose={() => setShowBill(false)}
-            title="Service Invoice"
-            size="lg"
-          >
-            <div className="space-y-8 relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-accent/5 blur-[80px] rounded-full -mr-32 -mt-32"></div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
-                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
-                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Bike Info</h4>
-                  <p className="text-xs font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{currentBill.bike_name}</p>
-                  <p className="font-mono font-bold text-brand-accent tracking-widest text-sm uppercase">{currentBill.bike_number}</p>
+          <Modal isOpen={showBill} onClose={() => setShowBill(false)} title="Service Invoice" size="lg">
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-app-bg rounded-lg p-4 border border-app-border">
+                  <p className="text-xs text-slate-500 mb-1">Bike</p>
+                  <p className="text-sm font-medium text-slate-200">{currentBill.bike_name}</p>
+                  <p className="font-mono text-brand-accent text-sm">{currentBill.bike_number}</p>
                 </div>
-                <div className="bg-slate-50 dark:bg-white/5 p-6 rounded-[1.5rem] border border-slate-100 dark:border-white/5">
-                  <h4 className="text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 uppercase">Customer</h4>
-                  <p className="text-xs font-display font-bold text-slate-800 dark:text-white mb-1 uppercase">{currentBill.customer_name}</p>
-                  <p className="font-mono font-bold text-slate-500 dark:text-slate-400 text-sm uppercase">+91 {currentBill.mobile}</p>
+                <div className="bg-app-bg rounded-lg p-4 border border-app-border">
+                  <p className="text-xs text-slate-500 mb-1">Customer</p>
+                  <p className="text-sm font-medium text-slate-200">{currentBill.customer_name}</p>
+                  <p className="font-mono text-slate-400 text-sm">+91 {currentBill.mobile}</p>
                 </div>
               </div>
 
-              <div className="border border-slate-100 dark:border-white/5 rounded-[2rem] overflow-hidden relative z-10">
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5">
-                    <tr>
-                      <th className="px-6 py-4 text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Description</th>
-                      <th className="px-6 py-4 text-right text-[9px] font-display font-bold text-slate-500 uppercase tracking-[0.3em] uppercase">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                    {currentBill.service_items?.map((item, idx) => (
-                      <tr key={`s-${idx}`}>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Service: {item.name}</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{item.price}</td>
-                      </tr>
-                    ))}
-                    {currentBill.parts_items?.map((item, idx) => (
-                      <tr key={`p-${idx}`}>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Part: {item.name}</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{item.price}</td>
-                      </tr>
-                    ))}
-                    {(!currentBill.service_items || currentBill.service_items.length === 0) && currentBill.service_amount > 0 && (
-                      <tr>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Service Charges</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{currentBill.service_amount}</td>
-                      </tr>
-                    )}
-                    {(!currentBill.parts_items || currentBill.parts_items.length === 0) && currentBill.parts_amount > 0 && (
-                      <tr>
-                        <td className="px-6 py-4 text-[11px] font-display font-bold text-slate-700 dark:text-slate-300 uppercase">Spare Parts</td>
-                        <td className="px-6 py-4 text-right font-mono font-bold text-slate-900 dark:text-white text-sm">₹{currentBill.parts_amount}</td>
-                      </tr>
-                    )}
+              <div className="border border-app-border rounded-lg overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-app-bg border-b border-app-border"><tr><th className="px-4 py-3 text-left text-xs text-slate-500 font-medium">Description</th><th className="px-4 py-3 text-right text-xs text-slate-500 font-medium">Amount</th></tr></thead>
+                  <tbody className="divide-y divide-app-border">
+                    {currentBill.service_items?.map((item, idx) => (<tr key={idx}><td className="px-4 py-2.5 text-slate-300">Service: {item.name}</td><td className="px-4 py-2.5 text-right font-mono text-slate-200">₹{item.price}</td></tr>))}
+                    {currentBill.parts_items?.map((item, idx) => (<tr key={idx}><td className="px-4 py-2.5 text-slate-300">Part: {item.name}</td><td className="px-4 py-2.5 text-right font-mono text-slate-200">₹{item.price}</td></tr>))}
+                    {(!currentBill.service_items?.length && currentBill.service_amount > 0) && (<tr><td className="px-4 py-2.5 text-slate-300">Service Charges</td><td className="px-4 py-2.5 text-right font-mono text-slate-200">₹{currentBill.service_amount}</td></tr>)}
+                    {(!currentBill.parts_items?.length && currentBill.parts_amount > 0) && (<tr><td className="px-4 py-2.5 text-slate-300">Spare Parts</td><td className="px-4 py-2.5 text-right font-mono text-slate-200">₹{currentBill.parts_amount}</td></tr>)}
                   </tbody>
                 </table>
               </div>
 
-              <div className="bg-slate-900 dark:bg-white text-white dark:text-brand-black rounded-[2rem] p-8 shadow-2xl relative z-10">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-[9px] font-display font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] uppercase">
-                    <span>Tax & Discounts</span>
-                    <span className="font-mono uppercase">
-                      GST({currentBill.gst_percent}%) : ₹{currentBill.gst_amount.toFixed(0)} | Disc: ₹{currentBill.discount.toFixed(0)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center pt-4 border-t border-white/10 dark:border-brand-black/5">
-                    <span className="text-xs font-display font-bold tracking-[0.3em] uppercase">Net Total</span>
-                    <span className="text-4xl font-mono font-bold tracking-tighter">₹{currentBill.total.toLocaleString('en-IN')}</span>
-                  </div>
+              <div className="bg-app-surface-hover rounded-xl p-5 border border-app-border">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-slate-500 uppercase tracking-wider">Net Total</span>
+                  <span className="text-3xl font-bold font-mono text-brand-primary">₹{currentBill.total.toLocaleString()}</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4 relative z-10">
-                <button
-                  onClick={handlePrint}
-                  className="btn-hover bg-brand-accent text-white py-4 rounded-xl font-display font-bold text-[9px] tracking-[0.2em] flex items-center justify-center gap-2 shadow-neon transition-all uppercase"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                  </svg>
-                  Print Invoice
-                </button>
-                <ShareButton bill={currentBill} />
-                <button
-                  onClick={() => setShowBill(false)}
-                  className="py-4 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:text-rose-500 border border-slate-200 dark:border-white/10 rounded-xl font-display font-bold text-[9px] tracking-[0.2em] transition-all cursor-pointer uppercase"
-                >
-                  Close
-                </button>
+              <div className="grid grid-cols-3 gap-3">
+                <button onClick={handlePrint} className="btn-primary py-3 text-xs">Print Invoice</button>
+                <button onClick={() => setShowBill(false)} className="btn-secondary py-3 text-xs">Close</button>
               </div>
             </div>
           </Modal>

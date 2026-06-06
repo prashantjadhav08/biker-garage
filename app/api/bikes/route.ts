@@ -1,132 +1,96 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { getBikes, createBike, updateBike, deleteBike, getBikeById } from '@/lib/services/bikes';
+import { jsonResponse, optionsResponse } from '@/lib/api/cors';
 
-export async function GET() {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
-  }
+export async function OPTIONS() {
+  return optionsResponse();
+}
 
+export async function GET(request: NextRequest) {
   try {
-    const { data, error } = await supabase!
-      .from('bikes')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get('q');
+    const id = searchParams.get('id');
 
-    if (error) {
-      console.error('Error fetching bikes:', error);
-      return NextResponse.json({ error: 'Failed to fetch bikes' }, { status: 500 });
+    if (id) {
+      const bike = getBikeById(id);
+      if (!bike) {
+        return jsonResponse({ error: 'Bike not found' }, 404);
+      }
+      return jsonResponse(bike);
     }
 
-    return NextResponse.json(data || []);
-  } catch (error) {
+    if (query) {
+      const { searchBikes } = await import('@/lib/services/bikes');
+      const bikes = searchBikes(query);
+      return jsonResponse(bikes);
+    }
+
+    const bikes = getBikes();
+    return jsonResponse(bikes);
+  } catch (error: any) {
     console.error('Error fetching bikes:', error);
-    return NextResponse.json({ error: 'Failed to fetch bikes' }, { status: 500 });
+    return jsonResponse({ error: 'Failed to fetch bikes' }, 500);
   }
 }
 
 export async function POST(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
-  }
-
   try {
     const body = await request.json();
-    const { bike_number, bike_name, customer_name, mobile } = body;
+    const { bike_number, bike_name, customer_name, mobile, status, notes, mechanic_name, estimated_time } = body;
 
     if (!bike_number || !bike_name || !customer_name || !mobile) {
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
+      return jsonResponse({ error: 'All fields are required' }, 400);
     }
 
-    const newBike = {
-      id: Date.now().toString(),
-      bike_number: bike_number.toUpperCase(),
+    const bike = createBike({
+      bike_number,
       bike_name,
       customer_name,
       mobile,
-      created_at: new Date().toISOString(),
-    };
+      status: status || 'Active',
+      notes: notes || '',
+      mechanic_name: mechanic_name || '',
+      estimated_time: estimated_time || '',
+    });
 
-    const { data, error } = await supabase!
-      .from('bikes')
-      .insert(newBike)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating bike:', error);
-      return NextResponse.json({ error: 'Failed to create bike' }, { status: 500 });
-    }
-
-    return NextResponse.json(data, { status: 201 });
-  } catch (error) {
+    return jsonResponse(bike, 201);
+  } catch (error: any) {
     console.error('Error creating bike:', error);
-    return NextResponse.json({ error: 'Failed to create bike' }, { status: 500 });
+    return jsonResponse({ error: error.message || 'Failed to create bike' }, 500);
   }
 }
 
 export async function PUT(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
-  }
-
   try {
     const body = await request.json();
-    const { id, bike_number, bike_name, customer_name, mobile } = body;
+    const { id, ...updates } = body;
 
     if (!id) {
-      return NextResponse.json({ error: 'Bike ID is required' }, { status: 400 });
+      return jsonResponse({ error: 'Bike ID is required' }, 400);
     }
 
-    const { data, error } = await supabase!
-      .from('bikes')
-      .update({
-        bike_number: bike_number?.toUpperCase(),
-        bike_name,
-        customer_name,
-        mobile,
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating bike:', error);
-      return NextResponse.json({ error: 'Failed to update bike' }, { status: 500 });
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
+    const bike = updateBike(id, updates);
+    return jsonResponse(bike);
+  } catch (error: any) {
     console.error('Error updating bike:', error);
-    return NextResponse.json({ error: 'Failed to update bike' }, { status: 500 });
+    return jsonResponse({ error: error.message || 'Failed to update bike' }, 500);
   }
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: 'Supabase not configured. Data is managed client-side.' }, { status: 503 });
-  }
-
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: 'Bike ID required' }, { status: 400 });
+      return jsonResponse({ error: 'Bike ID required' }, 400);
     }
 
-    const { error } = await supabase!
-      .from('bikes')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      console.error('Error deleting bike:', error);
-      return NextResponse.json({ error: 'Failed to delete bike' }, { status: 500 });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
+    deleteBike(id);
+    return jsonResponse({ success: true });
+  } catch (error: any) {
     console.error('Error deleting bike:', error);
-    return NextResponse.json({ error: 'Failed to delete bike' }, { status: 500 });
+    return jsonResponse({ error: error.message || 'Failed to delete bike' }, 500);
   }
 }
