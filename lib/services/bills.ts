@@ -128,18 +128,18 @@ export async function getReminders(): Promise<Bill[]> {
 }
 
 export async function getBillStats() {
-  const { data: totalBillsData, error: totalBillsErr } = await supabase
+  const { count: totalBillsCount, error: totalBillsErr } = await supabase
     .from('bills')
-    .select('id', { count: 'exact', head: true });
+    .select('*', { count: 'exact', head: true });
 
   const { data: totalRevenueData, error: totalRevenueErr } = await supabase
     .from('bills')
     .select('total')
     .eq('payment_status', 'Paid');
 
-  const { data: pendingBillsData, error: pendingBillsErr } = await supabase
+  const { count: pendingBillsCount, error: pendingBillsErr } = await supabase
     .from('bills')
-    .select('id', { count: 'exact', head: true })
+    .select('*', { count: 'exact', head: true })
     .eq('payment_status', 'Pending');
 
   const today = new Date().toISOString().split('T')[0];
@@ -150,26 +150,26 @@ export async function getBillStats() {
     .lte('created_at', `${today}T23:59:59.999Z`)
     .eq('payment_status', 'Paid');
 
-  const { data: inProgressBikesData, error: inProgressErr } = await supabase
+  const { count: inProgressBikesCount, error: inProgressErr } = await supabase
     .from('bikes')
-    .select('id', { count: 'exact', head: true })
+    .select('*', { count: 'exact', head: true })
     .eq('status', 'In Progress');
 
-  const { data: readyForPickupBikesData, error: readyErr } = await supabase
+  const { count: readyForPickupBikesCount, error: readyErr } = await supabase
     .from('bikes')
-    .select('id', { count: 'exact', head: true })
+    .select('*', { count: 'exact', head: true })
     .eq('status', 'Ready for Pickup');
 
   const totalRevenue = (totalRevenueData || []).reduce((sum: number, row: any) => sum + (row.total || 0), 0);
   const todayRevenue = (todayRevenueData || []).reduce((sum: number, row: any) => sum + (row.total || 0), 0);
 
   return {
-    total_bills: totalBillsData?.length ?? 0,
+    total_bills: totalBillsCount ?? 0,
     total_revenue: totalRevenue,
-    pending_bills: pendingBillsData?.length ?? 0,
+    pending_bills: pendingBillsCount ?? 0,
     today_revenue: todayRevenue,
-    in_progress_bikes: inProgressBikesData?.length ?? 0,
-    ready_for_pickup_bikes: readyForPickupBikesData?.length ?? 0,
+    in_progress_bikes: inProgressBikesCount ?? 0,
+    ready_for_pickup_bikes: readyForPickupBikesCount ?? 0,
   };
 }
 
