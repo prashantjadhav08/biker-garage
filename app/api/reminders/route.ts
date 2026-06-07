@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getReminders } from '@/lib/services/bills';
 import { jsonResponse, optionsResponse } from '@/lib/api/cors';
 
@@ -8,7 +8,7 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
-    const reminders = getReminders();
+    const reminders = await getReminders();
     return jsonResponse({ success: true, reminders });
   } catch (error: any) {
     console.error('Error fetching reminders:', error);

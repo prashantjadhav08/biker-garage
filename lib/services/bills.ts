@@ -1,90 +1,109 @@
-import { getDb } from '../db/connection';
+import { supabase } from '../db/supabase';
 import { Bill, ServiceItem } from '@/lib/types';
 
-export function getBills(days?: number): Bill[] {
-  const db = getDb();
-  let sql = 'SELECT * FROM bills ORDER BY created_at DESC';
-  let rows: any[];
+export async function getBills(days?: number): Promise<Bill[]> {
+  let query = supabase
+    .from('bills')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   if (typeof days === 'number' && days > 0) {
     const since = new Date();
     since.setDate(since.getDate() - days);
-    sql = 'SELECT * FROM bills WHERE created_at >= ? ORDER BY created_at DESC';
-    rows = db.prepare(sql).all(since.toISOString()) as any[];
-  } else {
-    rows = db.prepare(sql).all() as any[];
+    query = query.gte('created_at', since.toISOString());
   }
 
-  return rows.map(parseBillRow);
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error fetching bills:', error);
+    throw new Error('Failed to fetch bills');
+  }
+
+  return (data || []).map(row => parseBillRow(row));
 }
 
-export function createBill(bill: Omit<Bill, 'id' | 'created_at' | 'bill_number' | 'gst_amount' | 'total'>): Bill {
-  const db = getDb();
-  const subtotal = bill.service_amount + bill.parts_amount;
-  const gst_amount = subtotal * (bill.gst_percent / 100);
-  const total = Math.max(0, subtotal + gst_amount - bill.discount);
+export async function createBill(bill: Omit<Bill, 'id' | 'created_at' | 'bill_number' | 'gst_amount' | 'total'>): Promise<Bill> {
+  const subtotal = (bill.service_amount || 0) + (bill.parts_amount || 0);
+  const gst_amount = subtotal * ((bill.gst_percent || 18) / 100);
+  const total = Math.max(0, subtotal + gst_amount - (bill.discount || 0));
   const bill_number = `CK${Date.now().toString().slice(-6)}`;
   const paid_amount = bill.paid_amount || 0;
 
-  const stmt = db.prepare(
-    `INSERT INTO bills (
-      bill_number, bike_id, bike_number, bike_name, customer_name, mobile,
-      service_desc, service_items, parts_items, service_amount, parts_amount,
-      gst_percent, gst_amount, discount, total, paid_amount, payment_status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  );
+  const { data, error } = await supabase
+    .from('bills')
+    .insert({
+      bill_number,
+      bike_id: bill.bike_id || null,
+      bike_number: bill.bike_number || '',
+      bike_name: bill.bike_name || '',
+      customer_name: bill.customer_name || '',
+      mobile: bill.mobile || '',
+      service_desc: bill.service_desc,
+      service_items: bill.service_items || [],
+      parts_items: bill.parts_items || [],
+      service_amount: bill.service_amount || 0,
+      parts_amount: bill.parts_amount || 0,
+      gst_percent: bill.gst_percent || 18,
+      gst_amount,
+      discount: bill.discount || 0,
+      total,
+      paid_amount,
+      payment_status: bill.payment_status || 'Pending',
+    })
+    .select()
+    .single();
 
-  const result = stmt.run(
-    bill_number,
-    bill.bike_id ? parseInt(bill.bike_id) : null,
-    bill.bike_number,
-    bill.bike_name,
-    bill.customer_name,
-    bill.mobile,
-    bill.service_desc,
-    JSON.stringify(bill.service_items || []),
-    JSON.stringify(bill.parts_items || []),
-    bill.service_amount,
-    bill.parts_amount,
-    bill.gst_percent,
-    gst_amount,
-    bill.discount,
-    total,
-    paid_amount,
-    bill.payment_status || 'Pending'
-  );
+  if (error) {
+    console.error('Error creating bill:', error);
+    throw new Error(error.message || 'Failed to create bill');
+  }
 
-  return getBillById(String(result.lastInsertRowid))!;
+  return parseBillRow(data);
 }
 
-export function updateBill(id: string, updates: Partial<Bill>): Bill | null {
-  const db = getDb();
-  const existing = getBillById(id);
+export async function updateBill(id: string, updates: Partial<Bill>): Promise<Bill | null> {
+  const existing = await getBillById(id);
   if (!existing) return null;
 
-  const fields: string[] = [];
-  const values: any[] = [];
+  const fields: any = {};
+  if (updates.payment_status !== undefined) fields.payment_status = updates.payment_status;
+  if (updates.paid_amount !== undefined) fields.paid_amount = updates.paid_amount;
 
-  if (updates.payment_status !== undefined) { fields.push('payment_status = ?'); values.push(updates.payment_status); }
-  if (updates.paid_amount !== undefined) { fields.push('paid_amount = ?'); values.push(updates.paid_amount); }
+  if (Object.keys(fields).length === 0) return existing;
 
-  if (fields.length === 0) return existing;
+  const { data, error } = await supabase
+    .from('bills')
+    .update(fields)
+    .eq('id', id)
+    .select()
+    .single();
 
-  values.push(id);
-  db.prepare(`UPDATE bills SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+  if (error) {
+    console.error('Error updating bill:', error);
+    throw new Error(error.message || 'Failed to update bill');
+  }
 
-  return getBillById(id);
+  return parseBillRow(data);
 }
 
-export function getBillById(id: string): Bill | null {
-  const db = getDb();
-  const row = db.prepare('SELECT * FROM bills WHERE id = ?').get(id) as any;
-  if (!row) return null;
-  return parseBillRow(row);
+export async function getBillById(id: string): Promise<Bill | null> {
+  const { data, error } = await supabase
+    .from('bills')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    console.error('Error fetching bill by id:', error);
+    throw new Error('Failed to fetch bill');
+  }
+
+  return parseBillRow(data);
 }
 
-export function getReminders(): Bill[] {
-  const db = getDb();
+export async function getReminders(): Promise<Bill[]> {
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
@@ -93,39 +112,68 @@ export function getReminders(): Bill[] {
   const endWindow = new Date(threeMonthsAgo);
   endWindow.setDate(endWindow.getDate() + 7);
 
-  const rows = db.prepare(
-    'SELECT * FROM bills WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC'
-  ).all(startWindow.toISOString(), endWindow.toISOString()) as any[];
+  const { data, error } = await supabase
+    .from('bills')
+    .select('*')
+    .gte('created_at', startWindow.toISOString())
+    .lte('created_at', endWindow.toISOString())
+    .order('created_at', { ascending: false });
 
-  return rows.map(parseBillRow);
+  if (error) {
+    console.error('Error fetching reminders:', error);
+    throw new Error('Failed to fetch reminders');
+  }
+
+  return (data || []).map(row => parseBillRow(row));
 }
 
-export function updateBillPaymentStatus(id: string, status: string): void {
-  const db = getDb();
-  db.prepare('UPDATE bills SET payment_status = ? WHERE id = ?').run(status, id);
-}
+export async function getBillStats() {
+  const { data: totalBillsData, error: totalBillsErr } = await supabase
+    .from('bills')
+    .select('id', { count: 'exact', head: true });
 
-export function getBillStats() {
-  const db = getDb();
-  const totalBills = db.prepare('SELECT COUNT(*) as count FROM bills').get() as { count: number };
-  const totalRevenue = db.prepare('SELECT SUM(total) as sum FROM bills WHERE payment_status = ?').get('Paid') as { sum: number };
-  const pendingBills = db.prepare('SELECT COUNT(*) as count FROM bills WHERE payment_status = ?').get('Pending') as { count: number };
+  const { data: totalRevenueData, error: totalRevenueErr } = await supabase
+    .from('bills')
+    .select('total')
+    .eq('payment_status', 'Paid');
+
+  const { data: pendingBillsData, error: pendingBillsErr } = await supabase
+    .from('bills')
+    .select('id', { count: 'exact', head: true })
+    .eq('payment_status', 'Pending');
+
   const today = new Date().toISOString().split('T')[0];
-  const todayRevenue = db.prepare('SELECT SUM(total) as sum FROM bills WHERE date(created_at) = ? AND payment_status = ?').get(today, 'Paid') as { sum: number };
-  const inProgressBikes = db.prepare("SELECT COUNT(*) as count FROM bikes WHERE status = 'In Progress'").get() as { count: number };
-  const readyForPickupBikes = db.prepare("SELECT COUNT(*) as count FROM bikes WHERE status = 'Ready for Pickup'").get() as { count: number };
+  const { data: todayRevenueData, error: todayRevenueErr } = await supabase
+    .from('bills')
+    .select('total')
+    .gte('created_at', `${today}T00:00:00.000Z`)
+    .lte('created_at', `${today}T23:59:59.999Z`)
+    .eq('payment_status', 'Paid');
+
+  const { data: inProgressBikesData, error: inProgressErr } = await supabase
+    .from('bikes')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'In Progress');
+
+  const { data: readyForPickupBikesData, error: readyErr } = await supabase
+    .from('bikes')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'Ready for Pickup');
+
+  const totalRevenue = (totalRevenueData || []).reduce((sum: number, row: any) => sum + (row.total || 0), 0);
+  const todayRevenue = (todayRevenueData || []).reduce((sum: number, row: any) => sum + (row.total || 0), 0);
 
   return {
-    total_bills: totalBills.count,
-    total_revenue: totalRevenue.sum || 0,
-    pending_bills: pendingBills.count,
-    today_revenue: todayRevenue.sum || 0,
-    in_progress_bikes: inProgressBikes.count,
-    ready_for_pickup_bikes: readyForPickupBikes.count,
+    total_bills: totalBillsData?.length ?? 0,
+    total_revenue: totalRevenue,
+    pending_bills: pendingBillsData?.length ?? 0,
+    today_revenue: todayRevenue,
+    in_progress_bikes: inProgressBikesData?.length ?? 0,
+    ready_for_pickup_bikes: readyForPickupBikesData?.length ?? 0,
   };
 }
 
-export function sendWhatsAppReminder(billId: string): {success: boolean; message?: string; simulated?: boolean} {
+export function sendWhatsAppReminder(billId: string): { success: boolean; message?: string; simulated?: boolean } {
   return {
     success: true,
     message: 'Reminder sent successfully (SIMULATION MODE - no actual message sent)',
@@ -133,10 +181,19 @@ export function sendWhatsAppReminder(billId: string): {success: boolean; message
   };
 }
 
-export function getServiceCatalog(): ServiceItem[] {
-  const db = getDb();
-  const rows = db.prepare('SELECT * FROM service_items_catalog WHERE is_active = 1 ORDER BY item_name').all() as any[];
-  return rows.map(row => ({
+export async function getServiceCatalog(): Promise<ServiceItem[]> {
+  const { data, error } = await supabase
+    .from('service_items_catalog')
+    .select('*')
+    .eq('is_active', 1)
+    .order('item_name');
+
+  if (error) {
+    console.error('Error fetching service catalog:', error);
+    throw new Error('Failed to fetch service catalog');
+  }
+
+  return (data || []).map(row => ({
     id: String(row.id),
     name: row.item_name,
     type: row.item_type,
@@ -155,8 +212,8 @@ function parseBillRow(row: any): Bill {
     customer_name: row.customer_name,
     mobile: row.mobile,
     service_desc: row.service_desc,
-    service_items: typeof row.service_items === 'string' ? JSON.parse(row.service_items) : row.service_items || [],
-    parts_items: typeof row.parts_items === 'string' ? JSON.parse(row.parts_items) : row.parts_items || [],
+    service_items: Array.isArray(row.service_items) ? row.service_items : (typeof row.service_items === 'string' ? JSON.parse(row.service_items) : []),
+    parts_items: Array.isArray(row.parts_items) ? row.parts_items : (typeof row.parts_items === 'string' ? JSON.parse(row.parts_items) : []),
     service_amount: row.service_amount || 0,
     parts_amount: row.parts_amount || 0,
     gst_percent: row.gst_percent || 18,

@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServiceCatalog } from '@/lib/services/bills';
 import { jsonResponse, optionsResponse } from '@/lib/api/cors';
 
@@ -8,7 +7,7 @@ export async function OPTIONS() {
 
 export async function GET() {
   try {
-    const items = getServiceCatalog();
+    const items = await getServiceCatalog();
     return jsonResponse(items);
   } catch (error: any) {
     console.error('Error fetching service catalog:', error);

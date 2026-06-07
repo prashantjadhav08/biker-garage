@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getBikes, createBike, updateBike, deleteBike, getBikeById } from '@/lib/services/bikes';
+import { NextRequest } from 'next/server';
+import { getBikes, createBike, updateBike, deleteBike, getBikeById, searchBikes } from '@/lib/services/bikes';
 import { jsonResponse, optionsResponse } from '@/lib/api/cors';
 
 export async function OPTIONS() {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (id) {
-      const bike = getBikeById(id);
+      const bike = await getBikeById(id);
       if (!bike) {
         return jsonResponse({ error: 'Bike not found' }, 404);
       }
@@ -21,12 +21,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (query) {
-      const { searchBikes } = await import('@/lib/services/bikes');
-      const bikes = searchBikes(query);
+      const bikes = await searchBikes(query);
       return jsonResponse(bikes);
     }
 
-    const bikes = getBikes();
+    const bikes = await getBikes();
     return jsonResponse(bikes);
   } catch (error: any) {
     console.error('Error fetching bikes:', error);
@@ -43,7 +42,7 @@ export async function POST(request: NextRequest) {
       return jsonResponse({ error: 'All fields are required' }, 400);
     }
 
-    const bike = createBike({
+    const bike = await createBike({
       bike_number,
       bike_name,
       customer_name,
@@ -70,7 +69,7 @@ export async function PUT(request: NextRequest) {
       return jsonResponse({ error: 'Bike ID is required' }, 400);
     }
 
-    const bike = updateBike(id, updates);
+    const bike = await updateBike(id, updates);
     return jsonResponse(bike);
   } catch (error: any) {
     console.error('Error updating bike:', error);
@@ -87,7 +86,7 @@ export async function DELETE(request: NextRequest) {
       return jsonResponse({ error: 'Bike ID required' }, 400);
     }
 
-    deleteBike(id);
+    await deleteBike(id);
     return jsonResponse({ success: true });
   } catch (error: any) {
     console.error('Error deleting bike:', error);

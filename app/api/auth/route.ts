@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyAdmin } from '@/lib/auth-server';
+import { verifyAdmin, seedDefaultUsers } from '@/lib/auth-server';
 
 // Helper to add CORS headers to any response
 function corsResponse(body: any, status: number = 200) {
@@ -19,7 +19,10 @@ export async function POST(request: NextRequest) {
     const { username, password } = await request.json();
     console.log('[AUTH] Login attempt:', username);
 
-    const result = verifyAdmin(username, password);
+    // Ensure default users exist before login
+    await seedDefaultUsers();
+
+    const result = await verifyAdmin(username, password);
     console.log('[AUTH] Result:', result.success ? 'success' : 'failed');
 
     if (result.success) {

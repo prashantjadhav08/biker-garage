@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getBills, createBill, getBillById, getBillStats, updateBill } from '@/lib/services/bills';
 import { jsonResponse, optionsResponse } from '@/lib/api/cors';
 
@@ -14,19 +14,19 @@ export async function GET(request: NextRequest) {
     const stats = searchParams.get('stats');
 
     if (stats) {
-      const statsData = getBillStats();
+      const statsData = await getBillStats();
       return jsonResponse(statsData);
     }
 
     if (id) {
-      const bill = getBillById(id);
+      const bill = await getBillById(id);
       if (!bill) {
         return jsonResponse({ error: 'Bill not found' }, 404);
       }
       return jsonResponse(bill);
     }
 
-    const bills = getBills(days ? parseInt(days) : undefined);
+    const bills = await getBills(days ? parseInt(days) : undefined);
     return jsonResponse(bills);
   } catch (error: any) {
     console.error('Error fetching bills:', error);
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       return jsonResponse({ error: 'Service description is required' }, 400);
     }
 
-    const bill = createBill({
+    const bill = await createBill({
       bike_id: bike_id || '',
       bike_number: bike_number || '',
       bike_name: bike_name || '',
@@ -91,7 +91,7 @@ export async function PUT(request: NextRequest) {
       return jsonResponse({ error: 'Bill ID is required' }, 400);
     }
 
-    const bill = updateBill(id, {
+    const bill = await updateBill(id, {
       payment_status,
       paid_amount: paid_amount !== undefined ? parseFloat(paid_amount) : undefined,
     });

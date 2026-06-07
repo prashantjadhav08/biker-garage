@@ -1,36 +1,44 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { getDb } from './db/connection';
+import { supabase } from './db/supabase';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'chakra-garage-secret-key-change-in-production';
 const TOKEN_EXPIRY = '7d';
 
 export interface JWTPayload {
-  userId: number;
+  userId: string;
   username: string;
   role: string;
 }
 
-export function verifyAdmin(username: string, password: string): { success: boolean; token?: string; role?: string; error?: string } {
-  const db = getDb();
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username) as any;
+export async function verifyAdmin(username: string, password: string): Promise<{ success: boolean; token?: string; role?: string; error?: string }> {
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
 
-  if (!user) {
-    return { success: false, error: 'Invalid credentials' };
+    if (error || !user) {
+      return { success: false, error: 'Invalid credentials' };
+    }
+
+    const valid = bcrypt.compareSync(password, user.password_hash);
+    if (!valid) {
+      return { success: false, error: 'Invalid credentials' };
+    }
+
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, role: user.role },
+      JWT_SECRET,
+      { expiresIn: TOKEN_EXPIRY }
+    );
+
+    return { success: true, token, role: user.role };
+  } catch (err: any) {
+    console.error('[AUTH] Error:', err);
+    return { success: false, error: 'An error occurred' };
   }
-
-  const valid = bcrypt.compareSync(password, user.password_hash);
-  if (!valid) {
-    return { success: false, error: 'Invalid credentials' };
-  }
-
-  const token = jwt.sign(
-    { userId: user.id, username: user.username, role: user.role },
-    JWT_SECRET,
-    { expiresIn: TOKEN_EXPIRY }
-  );
-
-  return { success: true, token, role: user.role };
 }
 
 export function verifyToken(token: string): JWTPayload | null {
@@ -38,5 +46,45 @@ export function verifyToken(token: string): JWTPayload | null {
     return jwt.verify(token, JWT_SECRET) as JWTPayload;
   } catch {
     return null;
+  }
+}
+
+export async function seedDefaultUsers(): Promise<void> {
+  try {
+    // Seed admin
+    const { data: existingAdmin } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', 'admin')
+      .single();
+
+    if (!existingAdmin) {
+      const hash = bcrypt.hashSync(process.env.ADMIN_PASSWORD || 'Admin@123', 10);
+      await supabase.from('users').insert({
+        username: 'admin',
+        password_hash: hash,
+        role: 'admin',
+      });
+      console.log('[AUTH] Seeded default admin user');
+    }
+
+    // Seed staff
+    const { data: existingStaff } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', 'staff')
+      .single();
+
+    if (!existingStaff) {
+      const hash = bcrypt.hashSync(process.env.STAFF_PASSWORD || 'Staff@123', 10);
+      await supabase.from('users').insert({
+        username: 'staff',
+        password_hash: hash,
+        role: 'staff',
+      });
+      console.log('[AUTH] Seeded default staff user');
+    }
+  } catch (err) {
+    console.error('[AUTH] Error seeding users:', err);
   }
 }

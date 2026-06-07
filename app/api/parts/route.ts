@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getParts, createPart, updatePart, deletePart } from '@/lib/services/parts';
+import { NextRequest } from 'next/server';
+import { getParts, createPart, updatePart, deletePart, getPartById } from '@/lib/services/parts';
 import { jsonResponse, optionsResponse } from '@/lib/api/cors';
 
 export async function OPTIONS() {
@@ -12,15 +12,14 @@ export async function GET(request: NextRequest) {
     const id = searchParams.get('id');
 
     if (id) {
-      const { getPartById } = await import('@/lib/services/parts');
-      const part = getPartById(id);
+      const part = await getPartById(id);
       if (!part) {
         return jsonResponse({ error: 'Part not found' }, 404);
       }
       return jsonResponse(part);
     }
 
-    const parts = getParts();
+    const parts = await getParts();
     return jsonResponse(parts);
   } catch (error: any) {
     console.error('Error fetching parts:', error);
@@ -37,7 +36,7 @@ export async function POST(request: NextRequest) {
       return jsonResponse({ error: 'Part name is required' }, 400);
     }
 
-    const part = createPart({
+    const part = await createPart({
       name,
       category: category || 'General',
       quantity: parseInt(quantity) || 0,
@@ -61,7 +60,7 @@ export async function PUT(request: NextRequest) {
       return jsonResponse({ error: 'Part ID is required' }, 400);
     }
 
-    const part = updatePart(id, {
+    const part = await updatePart(id, {
       name: updates.name,
       category: updates.category,
       quantity: updates.quantity !== undefined ? parseInt(updates.quantity) : undefined,
@@ -89,7 +88,7 @@ export async function DELETE(request: NextRequest) {
       return jsonResponse({ error: 'Part ID required' }, 400);
     }
 
-    deletePart(id);
+    await deletePart(id);
     return jsonResponse({ success: true });
   } catch (error: any) {
     console.error('Error deleting part:', error);
